@@ -28,6 +28,18 @@ struct App {
 }
 
 impl App {
+    fn exit(&mut self) {
+        self.exit = true;
+    }
+
+    fn increment_counter(&mut self) {
+        self.counter += 1;
+    }
+
+    fn decrement_counter(&mut self) {
+        self.counter -= 1;
+    }
+
     fn run(&mut self, terminal: &mut tui::Tui) -> io::Result<()> {
         while !self.exit {
             terminal.draw(|frame| {
@@ -42,32 +54,52 @@ impl App {
         frame.render_widget(self, frame.size());
     }
 
-    fn handle_events(&self) {}
+    fn handle_events(&mut self) -> io::Result<()> {
+        match event::read()? {
+            Event::Key(key_event) if key_event.kind == KeyEventKind::Press => {
+                self.handle_key_event(key_event);
+            }
+            _ => (),
+        }
+        Ok(())
+    }
+
+    fn handle_key_event(&mut self, key_event: KeyEvent) {
+        match key_event.code {
+            KeyCode::Char('q') => self.exit(),
+            KeyCode::Left => self.decrement_counter(),
+            KeyCode::Right => self.increment_counter(),
+            _ => (),
+        }
+    }
 }
 
 impl Widget for &App {
     fn render(self, area: Rect, buf: &mut Buffer) {
-        let header = Title::from("Hey am in center");
-        let title = Title::from(Line::from(vec![
+        let title = Title::from("Blazingly fast Counter App".bold());
+        let description = Title::from(Line::from(vec![
             " Decrement ".into(),
             "<Left>".blue().bold(),
             " Increment ".into(),
             "<Right>".blue().bold(),
             " Quit ".into(),
-            "<Q> ".blue().bold(),
+            "<q> ".blue().bold(),
         ]));
 
         let block = Block::bordered()
+            .title(title.alignment(Alignment::Center))
             .title(
-                title
+                description
                     .alignment(Alignment::Center)
                     .position(Position::Bottom),
-            )
-            .title(header.alignment(Alignment::Center));
+            );
 
-        let p = Paragraph::new("IM INSIDE YOU HOME - also at center")
-            .centered()
-            .block(block);
+        let counter_text = Text::from(vec![Line::from(vec![
+            "Count: ".into(),
+            self.counter.to_string().yellow(),
+        ])]);
+
+        let p = Paragraph::new(counter_text).centered().block(block);
 
         p.render(area, buf);
     }
