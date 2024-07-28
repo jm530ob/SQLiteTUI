@@ -1,41 +1,81 @@
-use std::io::{stdout, Result};
-
-use ratatui::{
-    backend::{self, CrosstermBackend},
-    crossterm::{
-        event::{self, KeyCode, KeyEventKind},
-        terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
-        ExecutableCommand, QueueableCommand,
-    },
-    style::Stylize,
-    widgets::Paragraph,
-    Terminal,
+use std::{
+    io::{self, stdin, stdout},
+    vec,
 };
 
-fn main() -> Result<()> {
-    stdout().execute(EnterAlternateScreen)?;
-    enable_raw_mode()?;
-    let mut terminal = Terminal::new(CrosstermBackend::new(stdout()))?;
-    terminal.clear()?;
+use crossterm::terminal;
+use ratatui::{
+    buffer::Buffer,
+    crossterm::event::{self, Event, KeyCode, KeyEvent, KeyEventKind},
+    layout::{Alignment, Rect},
+    prelude::CrosstermBackend,
+    style::Stylize,
+    symbols::border,
+    text::{Line, Span, Text},
+    widgets::{
+        block::{Position, Title},
+        Block, Paragraph, Widget,
+    },
+    Frame, Terminal,
+};
 
-    loop {
-        terminal.draw(|frame| {
-            let area = frame.size();
-            frame.render_widget(Paragraph::new("Hello, world!").white().on_blue(), area);
-        })?;
+mod tui;
 
-        if event::poll(std::time::Duration::from_millis(16))? {
-            if let event::Event::Key(key) = event::read()? {
-                if key.kind == KeyEventKind::Press && key.code == KeyCode::Char('Q') {
-                    break;
-                }
-            }
+#[derive(Debug, Default, Clone, Copy)]
+struct App {
+    counter: u8,
+    exit: bool,
+}
+
+impl App {
+    fn run(&mut self, terminal: &mut tui::Tui) -> io::Result<()> {
+        while !self.exit {
+            terminal.draw(|frame| {
+                self.redner_frame(frame);
+            })?;
+            self.handle_events();
         }
+        Ok(())
     }
 
-    stdout().execute(LeaveAlternateScreen)?;
-    disable_raw_mode()?;
+    fn redner_frame(&self, frame: &mut Frame) {
+        frame.render_widget(self, frame.size());
+    }
 
-    Ok(())
-    // loop {}
+    fn handle_events(&self) {}
+}
+
+impl Widget for &App {
+    fn render(self, area: Rect, buf: &mut Buffer) {
+        let header = Title::from("Hey am in center");
+        let title = Title::from(Line::from(vec![
+            " Decrement ".into(),
+            "<Left>".blue().bold(),
+            " Increment ".into(),
+            "<Right>".blue().bold(),
+            " Quit ".into(),
+            "<Q> ".blue().bold(),
+        ]));
+
+        let block = Block::bordered()
+            .title(
+                title
+                    .alignment(Alignment::Center)
+                    .position(Position::Bottom),
+            )
+            .title(header.alignment(Alignment::Center));
+
+        let p = Paragraph::new("IM INSIDE YOU HOME - also at center")
+            .centered()
+            .block(block);
+
+        p.render(area, buf);
+    }
+}
+
+fn main() -> io::Result<()> {
+    let mut terminal = tui::init()?;
+    let app_result = App::default().run(&mut terminal);
+    tui::restore()?;
+    app_result
 }
