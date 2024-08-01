@@ -1,30 +1,35 @@
-use std::io;
-
 use ratatui::{
-    prelude::*,
-    widgets::{Block, Paragraph, Widget},
+    layout::{Alignment, Constraint, Direction, Layout},
+    widgets::{Block, Paragraph},
     Frame,
 };
 
-use crate::app::App;
+use crate::app::{App, Screen};
 
-pub struct Ui {
-    pub frame: &Frame,
-}
+pub struct Ui;
 
 impl Ui {
-    pub fn new() -> Self {
-        Self {}
-    }
-}
+    pub fn render(frame: &mut Frame, app: &App) {
+        let mut layout;
+        match app.screen {
+            Some(Screen::Main) => {
+                layout = Layout::default()
+                    .direction(Direction::Horizontal)
+                    .constraints(vec![Constraint::Percentage(50), Constraint::Percentage(50)])
+                    .split(frame.size());
 
-impl Widget for Ui {
-    fn render(self, area: Rect, buf: &mut Buffer) {
-        let layout = Layout::default()
-            .direction(Direction::Vertical)
-            .constraints(vec![Constraint::Percentage(50), Constraint::Percentage(50)])
-            .split(area);
+                let p = Paragraph::new("text")
+                    .alignment(Alignment::Center)
+                    .block(Block::bordered());
 
-        Paragraph::new("Par1").block(Block::bordered()).al
+                let p2 = Paragraph::new("text2")
+                    .alignment(Alignment::Center)
+                    .block(Block::bordered());
+
+                frame.render_widget(p, layout[0]);
+                // frame.render_widget(p2, layout[1]);
+            }
+            _ => {}
+        }
     }
 }

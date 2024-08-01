@@ -1,5 +1,4 @@
 use crossterm::event::{self, read, Event, KeyCode, KeyEvent, KeyEventKind};
-use ratatui::widgets::{Paragraph, Widget};
 
 use crate::{tui::Tui, ui::Ui};
 use std::{collections::HashMap, io};
@@ -71,7 +70,7 @@ impl App {
                     _ => {}
                 }
             }
-            terminal.draw(|frame| Ui::new(&frame))?;
+            terminal.draw(|frame| Ui::render(frame, self))?;
         }
     }
 
