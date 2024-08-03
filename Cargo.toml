@@ -8,5 +8,5 @@ crossterm = "0.27.0"
 ratatui = "0.27.0"
 serde = { version = "1.0.204" , features = ["derive"] }
 serde_json = "1.0.121"
-surrealdb = { version = "1.5.4", features = ["kv-rocksdb", "kv-speedb", "kv-mem"] }
-tokio = "1.39.2"
+rusqlite = { version = "0.32.0", features = ["bundled"] }
+tokio = {version = "1.39.2", features = ["full"] }
