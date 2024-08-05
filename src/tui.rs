@@ -1,12 +1,13 @@
+use std::io;
+use std::io::stdout;
+
 use crossterm::{
     execute,
     terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
-    // ExecutableCommand,
 };
-use ratatui::{backend::CrosstermBackend, terminal::Terminal};
-use std::io::{self, stdout, Stdout};
+use ratatui::{prelude::CrosstermBackend, Terminal};
 
-pub type Tui = Terminal<CrosstermBackend<Stdout>>;
+pub type Tui = Terminal<CrosstermBackend<io::Stdout>>;
 
 pub fn init() -> io::Result<Tui> {
     let terminal = Terminal::new(CrosstermBackend::new(stdout()))?;
@@ -15,7 +16,7 @@ pub fn init() -> io::Result<Tui> {
     Ok(terminal)
 }
 
-pub fn restore() -> io::Result<()> {
+pub fn clear() -> io::Result<()> {
     execute!(stdout(), LeaveAlternateScreen)?;
     disable_raw_mode()?;
     Ok(())
