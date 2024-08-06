@@ -9,6 +9,9 @@ use tui_popup::Popup;
 
 use crate::app::{App, ViewState};
 
+mod popup;
+use popup::Popupini;
+
 pub fn draw_ui(app: &App, frame: &mut Frame) {
     draw_background(frame);
     match app.current_view {
@@ -51,9 +54,10 @@ pub fn draw_ui(app: &App, frame: &mut Frame) {
             frame.render_widget(open, inner_layout[1]);
         }
         Some(ViewState::Create) => {
-            let create_table = Popup::new("                 ")
-                .title("Create new table")
-                .border_set(border::ROUNDED);
+            let popup = Popupini::new("Enter table name", &app.input, 40, 2);
+            // let create_table = Popup::new("                 ")
+            //     .title("Create new table")
+            //     .border_set(border::ROUNDED);
             // let layout = Layout::default()
             //     .direction(Direction::Vertical)
             //     .constraints(vec![
@@ -67,7 +71,8 @@ pub fn draw_ui(app: &App, frame: &mut Frame) {
             //     .centered()
             //     .block(Block::bordered().title("Enter table name"))
             //     .wrap(Wrap { trim: true });
-            frame.render_widget(&create_table, frame.size());
+            frame.render_widget(popup, frame.size());
+            // todo!(CUSTOM POPUP);
         }
         _ => {}
     }

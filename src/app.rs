@@ -16,6 +16,7 @@ pub struct App {
     pub current_view: Option<ViewState>,
     /// Display Go-To dialog
     pub display_popup: bool,
+    pub input: String,
 }
 
 impl App {
@@ -23,6 +24,7 @@ impl App {
         Self {
             current_view: Some(ViewState::Main),
             display_popup: false,
+            input: String::new(),
         }
     }
 
