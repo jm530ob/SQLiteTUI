@@ -1,7 +1,8 @@
 use crossterm::style::style;
+use layout::Flex;
 use ratatui::{
     prelude::*,
-    widgets::{block, Block, Borders, Paragraph},
+    widgets::{block, Block, Borders, Paragraph, Wrap},
 };
 use symbols::border;
 use tui_popup::Popup;
@@ -9,10 +10,9 @@ use tui_popup::Popup;
 use crate::app::{App, ViewState};
 
 pub fn draw_ui(app: &App, frame: &mut Frame) {
+    draw_background(frame);
     match app.current_view {
         Some(ViewState::Main) => {
-            let bg = Block::default().style(Style::default().bg(Color::Rgb(16, 31, 65)));
-
             let layout = Layout::default()
                 .direction(Direction::Vertical)
                 .constraints(vec![
@@ -28,47 +28,72 @@ pub fn draw_ui(app: &App, frame: &mut Frame) {
                 .split(layout[2]);
 
             let banner = Paragraph::new(Text::from(vec![
-                Line::from(" Welcome to Sqlite Tui App ").black().on_white(),
+                Line::from(" Welcome to Sqlite TUI Manager ").black().on_white(),
                 Line::from("This project is meant to be a lightweight and fast alternative"),
                 Line::from(
-                    "to other DB manager tools, usually implemented with graphical user interfaces.",
+                    "to other Sqlite DB manager tools, usually implemented with graphical user interfaces.",
                 ),
                 Line::from("It aims to provide a simple yet flexible user experience"),
                 Line::from("created by: Jakub Martenek").underlined(),
             ]))
             .centered();
 
-            let quit_block: Block = Block::default().title("Q").borders(Borders::ALL);
-
             let quit = Paragraph::new("'q' to quit")
-                .centered()
-                .block(quit_block)
-                .style(Style::default().bg(Color::Rgb(16, 31, 65)));
-
-            let open_block = Block::default().title("Space").borders(Borders::ALL);
+                .block(Block::bordered().title("Q"))
+                .centered();
 
             let open = Paragraph::new("'Space' to open dialog")
                 .centered()
-                .block(open_block);
+                .block(Block::bordered().title("Space"));
 
-            frame.render_widget(bg, frame.size());
             frame.render_widget(banner, layout[1]);
             frame.render_widget(quit, inner_layout[0]);
             frame.render_widget(open, inner_layout[1]);
         }
+        Some(ViewState::Create) => {
+            let create_table = Popup::new("                 ")
+                .title("Create new table")
+                .border_set(border::ROUNDED);
+            // let layout = Layout::default()
+            //     .direction(Direction::Vertical)
+            //     .constraints(vec![
+            //         Constraint::Percentage(35),
+            //         Constraint::Max(3),
+            //         Constraint::Percentage(35),
+            //     ])
+            //     .split(frame.size());
+
+            // let create_table = Paragraph::new("Table name")
+            //     .centered()
+            //     .block(Block::bordered().title("Enter table name"))
+            //     .wrap(Wrap { trim: true });
+            frame.render_widget(&create_table, frame.size());
+        }
         _ => {}
+    }
+    if app.display_popup {
+        draw_goto_popup(frame);
     }
 }
 
-fn draw_goto(frame: &mut Frame) {
+fn draw_background(frame: &mut Frame) {
+    let bg = Block::default().style(Style::default().bg(Color::Rgb(16, 31, 65)));
+    frame.render_widget(bg, frame.size());
+}
+
+fn draw_goto_popup(frame: &mut Frame) {
     let goto_popup = Popup::new(Text::from(vec![
         Line::from("c - create new database"),
         Line::from("r - retrieve database data"),
         Line::from("u - update database"),
         Line::from("d - delete database"),
+        Line::from("q - exit"),
     ]))
     .title("Space")
-    .border_set(border::ROUNDED);
+    .border_set(border::ROUNDED)
+    .style(Style::default().bg(Color::Rgb(27, 43, 79)));
 
     frame.render_widget(&goto_popup, frame.size());
 }
+
+fn draw_exit_popup(frame: &mut Frame) {}
