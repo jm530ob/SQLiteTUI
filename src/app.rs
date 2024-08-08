@@ -24,7 +24,7 @@ impl App {
         Self {
             current_view: Some(ViewState::Main),
             display_popup: false,
-            input: String::new(),
+            input: String::from("naaaaaa\nkokokokokoaaaa"),
         }
     }
 

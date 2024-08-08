@@ -13,12 +13,22 @@ struct Person {
     name: String,
     data: Option<Vec<u8>>,
 }
+trait StringExtensions {
+    fn uwu();
+}
+
+impl StringExtensions for String {
+    fn uwu() {
+        println!("UWU");
+    }
+}
 
 fn main() -> io::Result<()> {
     let mut terminal = tui::init()?;
     let mut app = App::new();
     app.run(&mut terminal)?;
     tui::clear()?;
+    String::uwu();
 
     // let conn = Connection::open_in_memory()?;
 
