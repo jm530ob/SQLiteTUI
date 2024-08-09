@@ -1,31 +1,44 @@
 use ratatui::prelude::*;
-use ratatui::widgets::{Block, Paragraph, Widget, WidgetRef};
+use ratatui::widgets::{Block, Paragraph, Widget};
 
-pub struct Popupini<'a, T: Into<Text<'a>>> {
+#[derive(Debug)]
+pub struct Popup<'a, T: Into<Text<'a>>> {
     pub title: &'a str,
     pub content: T,
     pub width: u16,
     pub height: u16,
 }
 
-// implement this block for type Popupini that has  generic lietime and assigne it to 'a (could be 'whatever)
-impl<'a, T> Popupini<'a, T>
+impl<'a, T> Popup<'a, T>
 where
     T: Into<Text<'a>>,
 {
-    pub fn new(title: &'a str, content: T, width: u16, height: u16) -> Self {
+    pub fn new(content: T) -> Self {
         Self {
-            title,
+            title: "",
             content,
-            width,
-            height,
+            width: 0,
+            height: 0,
         }
+    }
+
+    pub fn title(mut self, title: &'a str) -> Self {
+        self.title = title;
+        self
+    }
+
+    pub fn width(mut self, width: u16) -> Self {
+        self.width = width;
+        self
+    }
+
+    pub fn height(mut self, height: u16) -> Self {
+        self.height = height;
+        self
     }
 }
 
-// implement this block enhanced by Widget trait for a Popupini type that has some generic lifetime
-// and I also don't care about that generic lifetime in this block
-impl<'a, T> Widget for Popupini<'a, T>
+impl<'a, T> Widget for Popup<'a, T>
 where
     T: Into<Text<'a>>,
 {
@@ -36,14 +49,7 @@ where
             self.width,
             self.height,
         );
-
         let p = Paragraph::new(self.content).block(Block::bordered().title(self.title));
         p.render(rect, buf);
     }
 }
-// impl<'a, T> From<T> for Popupini<'a, T>
-// where
-//     T: Into<Text<'a>>,
-// {
-//     fn from() -> Self {}
-// }

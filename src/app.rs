@@ -13,6 +13,7 @@ pub enum ViewState {
 }
 
 pub struct App {
+    pub database: Option<String>,
     pub current_view: Option<ViewState>,
     /// Display Go-To dialog
     pub display_popup: bool,
@@ -24,7 +25,8 @@ impl App {
         Self {
             current_view: Some(ViewState::Main),
             display_popup: false,
-            input: String::from("naaaaaa\nkokokokokoaaaa"),
+            input: String::new(),
+            database: None,
         }
     }
 
@@ -56,8 +58,8 @@ impl App {
             match key_event.code {
                 KeyCode::Char('c') => self.change_view(ViewState::Create),
                 KeyCode::Char('r') => self.change_view(ViewState::Read),
-                KeyCode::Char('u') => self.change_view(ViewState::Update),
-                KeyCode::Char('d') => self.change_view(ViewState::Delete),
+                KeyCode::Char('u') if self.database != None => self.change_view(ViewState::Update),
+                KeyCode::Char('d') if self.database != None => self.change_view(ViewState::Delete),
                 KeyCode::Char('q') => self.current_view = None,
 
                 _ => {}
@@ -77,6 +79,16 @@ impl App {
                 _ => {}
             },
             Some(ViewState::Create) => match key_event.code {
+                KeyCode::Char(ch) => self.input.push(ch),
+                KeyCode::Backspace => {
+                    self.input.pop();
+                }
+                KeyCode::Enter => {
+                    todo!("Check if db exists by using file system");
+                    self.database = Some(self.input.clone());
+                    self.change_view(ViewState::Update);
+                }
+
                 _ => {}
             },
             Some(ViewState::Read) => match key_event.code {

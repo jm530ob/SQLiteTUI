@@ -4,18 +4,22 @@ use ratatui::{
     prelude::*,
     widgets::{block, Block, Borders, Paragraph, Wrap},
 };
-use symbols::border;
-use tui_popup::Popup;
+// use symbols::border;
+// use tui_popup::Popup;
 
 use crate::app::{App, ViewState};
 
 mod popup;
-use popup::Popupini;
-mod test;
-use test::Test;
+use popup::Popup;
 
 pub fn draw_ui(app: &App, frame: &mut Frame) {
     draw_background(frame);
+    let selected_db = Paragraph::new(format!(
+        "Selected db: {}",
+        app.database.clone().unwrap_or("None".to_owned()),
+    ));
+
+    frame.render_widget(selected_db, frame.size());
     match app.current_view {
         Some(ViewState::Main) => {
             let layout = Layout::default()
@@ -57,12 +61,10 @@ pub fn draw_ui(app: &App, frame: &mut Frame) {
         }
         Some(ViewState::Create) => {
             let lines = &app.input.split("\n").collect::<Vec<&str>>();
-            let popup = Popupini::new(
-                "Enter table name",
-                Text::from(&*app.input),
-                35,
-                (lines.len() + 2) as u16,
-            );
+            let popup = Popup::new(Text::from(&*app.input.trim()))
+                .title("Enter table name")
+                .width(35)
+                .height((lines.len() + 2) as u16);
             frame.render_widget(popup, frame.size());
         }
         _ => {}
@@ -86,10 +88,10 @@ fn draw_goto_popup(frame: &mut Frame) {
         Line::from("q - exit"),
     ]))
     .title("Space")
-    .border_set(border::ROUNDED)
-    .style(Style::default().bg(Color::Rgb(27, 43, 79)));
+    .width(30)
+    .height(7);
 
-    frame.render_widget(&goto_popup, frame.size());
+    frame.render_widget(goto_popup, frame.size());
 }
 
 fn draw_exit_popup(frame: &mut Frame) {}
