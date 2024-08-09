@@ -2,7 +2,7 @@ use std::io;
 
 use crossterm::event::{self, Event, KeyCode, KeyEvent, KeyEventKind};
 
-use crate::{tui, ui};
+use crate::{database, tui, ui};
 
 pub enum ViewState {
     Main,
@@ -84,8 +84,11 @@ impl App {
                     self.input.pop();
                 }
                 KeyCode::Enter => {
-                    todo!("Check if db exists by using file system");
                     self.database = Some(self.input.clone());
+                    todo!("Handle error without crashing");
+                    if let Some(name) = &self.database {
+                        database::create_db(&name).unwrap();
+                    }
                     self.change_view(ViewState::Update);
                 }
 
