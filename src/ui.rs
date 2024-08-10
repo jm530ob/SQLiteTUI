@@ -1,11 +1,11 @@
-use crossterm::style::style;
-use layout::Flex;
+// use std::io::Error;
+use std::vec;
+
 use ratatui::{
     prelude::*,
-    widgets::{block, Block, Borders, Paragraph, Wrap},
+    widgets::{Block, Paragraph},
 };
-// use symbols::border;
-// use tui_popup::Popup;
+use serde::de::value::Error;
 
 use crate::app::{App, ViewState};
 
@@ -47,13 +47,19 @@ pub fn draw_ui(app: &App, frame: &mut Frame) {
             ]))
             .centered();
 
-            let quit = Paragraph::new("'q' to quit")
-                .block(Block::bordered().title("Q"))
-                .centered();
+            let quit = Paragraph::new(Line::from(vec![
+                Span::from("<q> ".light_blue().bold()),
+                Span::from("to quit"),
+            ]))
+            .block(Block::bordered().title("Q"))
+            .centered();
 
-            let open = Paragraph::new("'Space' to open dialog")
-                .centered()
-                .block(Block::bordered().title("Space"));
+            let open = Paragraph::new(Line::from(vec![
+                Span::from("<Space> ".light_blue().bold()),
+                Span::from("to open/close dialog"),
+            ]))
+            .centered()
+            .block(Block::bordered().title("Space"));
 
             frame.render_widget(banner, layout[1]);
             frame.render_widget(quit, inner_layout[0]);
@@ -61,8 +67,7 @@ pub fn draw_ui(app: &App, frame: &mut Frame) {
         }
         Some(ViewState::Create) => {
             let lines = &app.input.split("\n").collect::<Vec<&str>>();
-            let popup = Popup::new(Text::from(&*app.input.trim()))
-                .title("Enter table name")
+            let popup = Popup::new("Enter table name", Text::from(&*app.input.trim()))
                 .width(35)
                 .height((lines.len() + 2) as u16);
             frame.render_widget(popup, frame.size());
@@ -72,22 +77,33 @@ pub fn draw_ui(app: &App, frame: &mut Frame) {
     if app.display_popup {
         draw_goto_popup(frame);
     }
+
+    if let Some(err) = &app.error_message {
+        draw_err_popup(frame, err);
+    }
 }
 
-fn draw_background(frame: &mut Frame) {
-    let bg = Block::default().style(Style::default().bg(Color::Rgb(16, 31, 65)));
-    frame.render_widget(bg, frame.size());
+pub fn draw_err_popup(frame: &mut Frame, err: &std::io::Error) {
+    let message = format!("{}", err);
+    frame.render_widget(
+        Popup::new("<Error>".red().bold(), &*message)
+            .width((message.chars().count() + 2) as u16)
+            .height(3),
+        frame.size(),
+    );
 }
 
 fn draw_goto_popup(frame: &mut Frame) {
-    let goto_popup = Popup::new(Text::from(vec![
-        Line::from("c - create new database"),
-        Line::from("r - retrieve database data"),
-        Line::from("u - update database"),
-        Line::from("d - delete database"),
-        Line::from("q - exit"),
-    ]))
-    .title("Space")
+    let goto_popup = Popup::new(
+        "<Space>".light_blue().bold(),
+        Text::from(vec![
+            Line::from("c - create new database"),
+            Line::from("r - retrieve database data"),
+            Line::from("u - update database"),
+            Line::from("d - delete database"),
+            Line::from("q - exit"),
+        ]),
+    )
     .width(30)
     .height(7);
 
@@ -95,3 +111,8 @@ fn draw_goto_popup(frame: &mut Frame) {
 }
 
 fn draw_exit_popup(frame: &mut Frame) {}
+
+fn draw_background(frame: &mut Frame) {
+    let bg = Block::default().style(Style::default().bg(Color::Rgb(16, 31, 65)));
+    frame.render_widget(bg, frame.size());
+}

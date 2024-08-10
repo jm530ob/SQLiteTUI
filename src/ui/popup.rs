@@ -1,31 +1,41 @@
+use std::marker::PhantomData;
+
 use ratatui::prelude::*;
+use ratatui::widgets::block::Title;
 use ratatui::widgets::{Block, Paragraph, Widget};
 
 #[derive(Debug)]
-pub struct Popup<'a, T: Into<Text<'a>>> {
-    pub title: &'a str,
-    pub content: T,
-    pub width: u16,
-    pub height: u16,
-}
-
-impl<'a, T> Popup<'a, T>
+pub struct Popup<'a, T, U>
 where
     T: Into<Text<'a>>,
+    U: Into<Title<'a>>,
 {
-    pub fn new(content: T) -> Self {
+    pub content: T,
+    pub title: U,
+    pub width: u16,
+    pub height: u16,
+    pub _marker: PhantomData<&'a ()>,
+}
+
+impl<'a, T, U> Popup<'a, T, U>
+where
+    T: Into<Text<'a>>,
+    U: Into<Title<'a>>,
+{
+    pub fn new(title: U, content: T) -> Self {
         Self {
-            title: "",
+            title,
             content,
             width: 0,
             height: 0,
+            _marker: PhantomData,
         }
     }
 
-    pub fn title(mut self, title: &'a str) -> Self {
-        self.title = title;
-        self
-    }
+    // pub fn title(mut self, title: U) -> Self {
+    //     self.title = title;
+    //     self
+    // }
 
     pub fn width(mut self, width: u16) -> Self {
         self.width = width;
@@ -38,9 +48,10 @@ where
     }
 }
 
-impl<'a, T> Widget for Popup<'a, T>
+impl<'a, T, U> Widget for Popup<'a, T, U>
 where
-    T: Into<Text<'a>>,
+    T: Into<Text<'a>> + From<&'a str>,
+    U: Into<Title<'a>>,
 {
     fn render(self, area: Rect, buf: &mut Buffer) {
         let rect = Rect::new(

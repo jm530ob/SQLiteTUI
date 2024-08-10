@@ -1,26 +1,29 @@
 use std::{
     fs::File,
-    io::{self, Error},
+    io::{self, Error, ErrorKind},
 };
 
-pub fn create_db(name: &str) -> io::Result<()> {
-    if !name.trim().ends_with(".db") {
-        return Err(io::Error::new(
-            io::ErrorKind::InvalidInput,
-            "File name must end with .db",
-        ));
-    }
-    let db = File::create(name.trim())?;
-    Ok(())
+pub fn create_db(name: &str) -> Result<(), io::Error> {
+    let mut name = name.to_owned();
+    name.push_str(".db");
+
+    match File::create(name.trim()) {
+        Ok(_) => return Ok(()),
+        Err(err) => return Err(err),
+    };
 }
 
-pub fn locate_db(path: &str) -> io::Result<()> {
-    if let Ok(_) = File::open(path.trim()) {
-        return Ok(());
-    } else {
-        return Err(io::Error::new(
-            io::ErrorKind::NotFound,
-            format!("Database: {} was not found!", path),
-        ));
-    }
+pub fn open_db_if_exists(name: &str) -> Result<(), io::Error> {
+    todo!("handle .db file extension as well as without it");
+    let result = File::open(name.trim());
+    match result {
+        Ok(_) => return Ok(()),
+        Err(err) => match err.kind() {
+            ErrorKind::NotFound => {
+                return Err(err);
+            }
+
+            _ => return Err(err),
+        },
+    };
 }
