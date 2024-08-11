@@ -21,9 +21,9 @@ pub enum ViewState {
 pub struct App {
     pub database: Option<String>,
     pub current_view: Option<ViewState>,
+    pub error_message: Option<io::Error>,
     pub display_popup: bool, // go-to dialog
     pub input: String,
-    pub error_message: Option<io::Error>,
 }
 
 impl App {
@@ -31,9 +31,9 @@ impl App {
         Self {
             current_view: Some(ViewState::Main),
             display_popup: false,
+            error_message: None,
             input: String::new(),
             database: None,
-            error_message: None,
         }
     }
 
@@ -77,6 +77,7 @@ impl App {
 
         match key_event.code {
             KeyCode::Char(' ') => self.display_popup = true,
+            KeyCode::Esc => self.error_message = None,
             _ => {}
         }
 

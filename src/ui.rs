@@ -3,14 +3,19 @@ use std::vec;
 
 use ratatui::{
     prelude::*,
-    widgets::{Block, Paragraph},
+    widgets::{
+        block::{Position, Title},
+        Block, Paragraph,
+    },
 };
-use serde::de::value::Error;
 
 use crate::app::{App, ViewState};
 
 mod popup;
 use popup::Popup;
+
+const CUSTOM_BLUE: Color = Color::Rgb(96, 164, 229);
+const CUSTOM_BG: Color = Color::Rgb(16, 31, 65);
 
 pub fn draw_ui(app: &App, frame: &mut Frame) {
     draw_background(frame);
@@ -48,14 +53,14 @@ pub fn draw_ui(app: &App, frame: &mut Frame) {
             .centered();
 
             let quit = Paragraph::new(Line::from(vec![
-                Span::from("<q> ".light_blue().bold()),
+                Span::from("<q> ".fg(CUSTOM_BLUE).bold()),
                 Span::from("to quit"),
             ]))
             .block(Block::bordered().title("Q"))
             .centered();
 
             let open = Paragraph::new(Line::from(vec![
-                Span::from("<Space> ".light_blue().bold()),
+                Span::from("<Space> ".fg(CUSTOM_BLUE).bold()),
                 Span::from("to open/close dialog"),
             ]))
             .centered()
@@ -66,11 +71,11 @@ pub fn draw_ui(app: &App, frame: &mut Frame) {
             frame.render_widget(open, inner_layout[1]);
         }
         Some(ViewState::Create) => {
-            let lines = &app.input.split("\n").collect::<Vec<&str>>();
-            let popup = Popup::new("Enter table name", Text::from(&*app.input.trim()))
-                .width(35)
-                .height((lines.len() + 2) as u16);
-            frame.render_widget(popup, frame.size());
+            draw_input_popup(frame, app, "Enter table name");
+        }
+
+        Some(ViewState::Read) => {
+            draw_input_popup(frame, app, "Enter table to read from");
         }
         _ => {}
     }
@@ -83,36 +88,64 @@ pub fn draw_ui(app: &App, frame: &mut Frame) {
     }
 }
 
-pub fn draw_err_popup(frame: &mut Frame, err: &std::io::Error) {
+fn draw_input_popup(frame: &mut Frame, app: &App, text: &str) {
+    let lines = app.input.split("\n").collect::<Vec<&str>>();
+    let input_popup = Popup::new()
+        .block(Block::bordered().title(Title::from(Line::from(text.bold()))))
+        .content(Text::from(&*app.input.trim()))
+        .style(Style::new().bg(CUSTOM_BG))
+        .w(35)
+        .h((lines.len() + 2) as u16);
+    frame.render_widget(input_popup, frame.size());
+}
+
+fn draw_err_popup(frame: &mut Frame, err: &std::io::Error) {
     let message = format!("{}", err);
-    frame.render_widget(
-        Popup::new("<Error>".red().bold(), &*message)
-            .width((message.chars().count() + 2) as u16)
-            .height(3),
-        frame.size(),
-    );
+
+    let error_dialog = Popup::new()
+        .block(
+            Block::bordered().title(Title::from("<Error>".red())).title(
+                Title::from(format!("{} {}", "<Esc>".fg(CUSTOM_BLUE).bold(), "to close"))
+                    .alignment(Alignment::Right)
+                    .position(Position::Bottom),
+            ),
+        )
+        .content(Text::from(message.clone()))
+        .style(Style::new().bg(CUSTOM_BG))
+        .w((message.chars().count() + 2) as u16)
+        .h(4);
+
+    frame.render_widget(error_dialog, frame.size());
 }
 
 fn draw_goto_popup(frame: &mut Frame) {
-    let goto_popup = Popup::new(
-        "<Space>".light_blue().bold(),
-        Text::from(vec![
+    let main_dialog = Popup::new()
+        .block(
+            Block::bordered()
+                .title("<Space>".fg(CUSTOM_BLUE).bold())
+                .title(
+                    Title::from("<Space>")
+                        .alignment(Alignment::Right)
+                        .position(Position::Bottom),
+                ),
+        )
+        .content(Text::from(vec![
             Line::from("c - create new database"),
-            Line::from("r - retrieve database data"),
+            Line::from("r - read/select database"),
             Line::from("u - update database"),
-            Line::from("d - delete database"),
+            Line::from("d - delete current database"),
             Line::from("q - exit"),
-        ]),
-    )
-    .width(30)
-    .height(7);
+        ]))
+        .style(Style::new().bg(CUSTOM_BG))
+        .w(30)
+        .h(7);
 
-    frame.render_widget(goto_popup, frame.size());
+    frame.render_widget(main_dialog, frame.size());
 }
 
 fn draw_exit_popup(frame: &mut Frame) {}
 
 fn draw_background(frame: &mut Frame) {
-    let bg = Block::default().style(Style::default().bg(Color::Rgb(16, 31, 65)));
+    let bg = Block::default().style(Style::new().bg(CUSTOM_BG));
     frame.render_widget(bg, frame.size());
 }

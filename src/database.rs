@@ -1,11 +1,10 @@
 use std::{
     fs::File,
-    io::{self, Error, ErrorKind},
+    io::{self, ErrorKind},
 };
 
 pub fn create_db(name: &str) -> Result<(), io::Error> {
-    let mut name = name.to_owned();
-    name.push_str(".db");
+    let name = ensure_correct_path(name.to_owned());
 
     match File::create(name.trim()) {
         Ok(_) => return Ok(()),
@@ -14,7 +13,8 @@ pub fn create_db(name: &str) -> Result<(), io::Error> {
 }
 
 pub fn open_db_if_exists(name: &str) -> Result<(), io::Error> {
-    todo!("handle .db file extension as well as without it");
+    let name = ensure_correct_path(name.to_owned());
+
     let result = File::open(name.trim());
     match result {
         Ok(_) => return Ok(()),
@@ -26,4 +26,11 @@ pub fn open_db_if_exists(name: &str) -> Result<(), io::Error> {
             _ => return Err(err),
         },
     };
+}
+
+fn ensure_correct_path(mut name: String) -> String {
+    if !name.ends_with(".db") {
+        name.push_str(".db");
+    }
+    name
 }
