@@ -22,7 +22,7 @@ pub struct App {
     pub database: Option<String>,
     pub current_view: Option<ViewState>,
     pub error_message: Option<io::Error>,
-    pub display_popup: bool, // go-to dialog
+    pub display_dialog: bool, // go-to dialog
     pub input: String,
 }
 
@@ -30,7 +30,7 @@ impl App {
     pub fn new() -> Self {
         Self {
             current_view: Some(ViewState::Main),
-            display_popup: false,
+            display_dialog: false,
             error_message: None,
             input: String::new(),
             database: None,
@@ -61,7 +61,7 @@ impl App {
     }
 
     fn handle_key_event(&mut self, key_event: KeyEvent) {
-        if self.display_popup {
+        if self.display_dialog {
             match key_event.code {
                 KeyCode::Char('c') => self.change_view(ViewState::Create),
                 KeyCode::Char('r') => self.change_view(ViewState::Read),
@@ -71,12 +71,12 @@ impl App {
 
                 _ => {}
             }
-            self.display_popup = false;
+            self.display_dialog = false;
             return;
         };
 
         match key_event.code {
-            KeyCode::Char(' ') => self.display_popup = true,
+            KeyCode::Char(' ') => self.display_dialog = true,
             KeyCode::Esc => self.error_message = None,
             _ => {}
         }
@@ -125,10 +125,6 @@ impl App {
             Some(ViewState::Delete) => match key_event.code {
                 _ => {}
             },
-
-            // Some(ViewState::Goto) => match key_event.code {
-            //     _ => {}
-            // },
             _ => {}
         }
     }

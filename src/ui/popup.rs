@@ -1,11 +1,9 @@
 // use derive_setters::Setters;
 use ratatui::prelude::*;
-use ratatui::widgets::block::Title;
 use ratatui::widgets::{Block, Clear, Paragraph, Widget};
 
 #[derive(Debug)]
 pub struct Popup<'a> {
-    pub title: Title<'a>,
     pub content: Text<'a>,
     pub block: Block<'a>,
     pub style: Style,
@@ -17,18 +15,12 @@ pub struct Popup<'a> {
 impl<'a> Popup<'a> {
     pub fn new() -> Self {
         Self {
-            title: Title::default(),
             content: Text::default(),
             style: Style::default(),
             block: Block::bordered(),
             width: 0,
             height: 0,
         }
-    }
-
-    pub fn title(mut self, title: Title<'a>) -> Self {
-        self.title = title;
-        self
     }
 
     pub fn content(mut self, content: Text<'a>) -> Self {

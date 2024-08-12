@@ -17,7 +17,7 @@ use popup::Popup;
 const CUSTOM_BLUE: Color = Color::Rgb(96, 164, 229);
 const CUSTOM_BG: Color = Color::Rgb(16, 31, 65);
 
-pub fn draw_ui(app: &App, frame: &mut Frame) {
+fn setup(frame: &mut Frame, app: &App) {
     draw_background(frame);
     let selected_db = Paragraph::new(format!(
         "Selected db: {}",
@@ -25,6 +25,9 @@ pub fn draw_ui(app: &App, frame: &mut Frame) {
     ));
 
     frame.render_widget(selected_db, frame.size());
+}
+pub fn draw_ui(app: &App, frame: &mut Frame) {
+    setup(frame, app);
     match app.current_view {
         Some(ViewState::Main) => {
             let layout = Layout::default()
@@ -79,7 +82,7 @@ pub fn draw_ui(app: &App, frame: &mut Frame) {
         }
         _ => {}
     }
-    if app.display_popup {
+    if app.display_dialog {
         draw_goto_popup(frame);
     }
 
@@ -120,15 +123,7 @@ fn draw_err_popup(frame: &mut Frame, err: &std::io::Error) {
 
 fn draw_goto_popup(frame: &mut Frame) {
     let main_dialog = Popup::new()
-        .block(
-            Block::bordered()
-                .title("<Space>".fg(CUSTOM_BLUE).bold())
-                .title(
-                    Title::from("<Space>")
-                        .alignment(Alignment::Right)
-                        .position(Position::Bottom),
-                ),
-        )
+        .block(Block::bordered().title("<Space>".fg(CUSTOM_BLUE).bold()))
         .content(Text::from(vec![
             Line::from("c - create new database"),
             Line::from("r - read/select database"),
