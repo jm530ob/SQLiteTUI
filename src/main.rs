@@ -29,6 +29,10 @@ fn main() -> io::Result<()> {
     let mut app = App::new();
     app.run(&mut terminal)?;
     tui::clear()?;
+    let mut test = database::Db {
+        records: vec![Box::new(20)],
+    };
+    test.add_record();
     String::uwu();
 
     // let conn = Connection::open_in_memory()?;

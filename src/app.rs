@@ -19,10 +19,10 @@ pub enum ViewState {
 }
 
 pub struct App {
-    pub database: Option<String>,
     pub current_view: Option<ViewState>,
-    pub error_message: Option<io::Error>,
-    pub display_dialog: bool, // go-to dialog
+    pub database: Option<String>,
+    pub display_dialog: bool,
+    pub error_message: Option<io::Error>, // go-to dialog
     pub input: String,
 }
 
@@ -137,4 +137,5 @@ impl App {
         //
         self.current_view = None;
     }
+    //fn ok($mu)
 }
