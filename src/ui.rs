@@ -1,15 +1,17 @@
 // use std::io::Error;
 use std::vec;
 
+use layout::Rows;
 use ratatui::{
     prelude::*,
     widgets::{
         block::{Position, Title},
-        Block, Paragraph,
+        Block, Paragraph, Row, Table,
     },
 };
 
 use crate::app::{App, ViewState};
+use crate::database::Db;
 
 mod popup;
 use popup::Popup;
@@ -80,6 +82,16 @@ pub fn draw_ui(app: &App, frame: &mut Frame) {
         Some(ViewState::Read) => {
             draw_input_popup(frame, app, "Enter table to read from");
         }
+
+        Some(ViewState::Update) => {
+            let test_db = Db {
+                records: vec![Box::new("kokos".to_owned()), Box::new(false), Box::new(10)],
+            };
+            todo!("Layout for table");
+            todo!("Add key handler for adding items in App");
+            draw_items(frame, &test_db);
+        }
+
         _ => {}
     }
     if app.display_dialog {
@@ -100,6 +112,20 @@ fn draw_input_popup(frame: &mut Frame, app: &App, text: &str) {
         .w(35)
         .h((lines.len() + 2) as u16);
     frame.render_widget(input_popup, frame.size());
+}
+
+pub fn draw_items(frame: &mut Frame, db: &Db) {
+    let rows = [Row::new(vec!["Cell1", "Cell2", "Cell3"])];
+    let widths = [
+        Constraint::Length(10),
+        Constraint::Length(10),
+        Constraint::Length(10),
+    ];
+    let table = Table::new(rows, widths);
+    // for record in db.records.iter() {
+    //     println!("sd");
+    // }
+    frame.render_widget(table, frame.size());
 }
 
 fn draw_err_popup(frame: &mut Frame, err: &std::io::Error) {

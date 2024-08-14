@@ -27,10 +27,8 @@ pub struct Db {
 
 impl Db {
     pub fn add_record(&mut self) {
-        let n = 10;
-        self.records.push(Box::from(n));
-        for num in self.records.iter() {
-            println!("{:?}", num);
+        for item in self.records.iter() {
+            println!("{:?}", item);
         }
     }
 }

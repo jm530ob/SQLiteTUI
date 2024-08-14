@@ -129,6 +129,7 @@ impl App {
         }
     }
 
+    // for item
     fn change_view(&mut self, view: ViewState) {
         self.current_view = Some(view);
     }
