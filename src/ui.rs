@@ -87,8 +87,8 @@ pub fn draw_ui(app: &App, frame: &mut Frame) {
             let test_db = Db {
                 records: vec![Box::new("kokos".to_owned()), Box::new(false), Box::new(10)],
             };
-            todo!("Layout for table");
-            todo!("Add key handler for adding items in App");
+            // todo!("Layout for table");
+            // todo!("Add key handler for adding items in App");
             draw_items(frame, &test_db);
         }
 

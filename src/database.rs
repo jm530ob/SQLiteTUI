@@ -64,3 +64,18 @@ fn ensure_correct_path(mut name: String) -> String {
     }
     name
 }
+
+#[cfg(test)]
+mod tests {
+    use std::{fs::remove_file, path::Path};
+
+    #[test]
+    fn create_db_file_from_path() {
+        let path = "test.db";
+        super::create_db(path).expect("Failed to create a new DB file with name: {}");
+
+        assert!(Path::new(path).exists());
+
+        remove_file(path).expect("Failed to remove DB file");
+    }
+}
