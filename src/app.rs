@@ -91,7 +91,6 @@ impl App {
                 _ => {}
             },
             Some(ViewState::Create) => match key_event.code {
-                // KeyCode::Char("t") => database::
                 KeyCode::Char(ch) => self.input.push(ch),
                 KeyCode::Backspace => {
                     self.input.pop();
@@ -102,6 +101,7 @@ impl App {
                         if let Err(err) = db.create_db() {
                             self.error_message = Some(err);
                         }
+                        db.select_query().unwrap();
                     }
                     self.input.clear();
                     self.change_view(ViewState::Update);
@@ -143,4 +143,9 @@ impl App {
         self.current_view = None;
     }
     //fn ok($mu)
+}
+
+#[cfg(test)]
+mod tests {
+    // #[test]
 }

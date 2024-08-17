@@ -25,21 +25,20 @@ pub struct Cursor {
 pub struct Db {
     pub name: Option<String>,
     pub records: Vec<SqlType>,
-    pub conn: Connection,
 }
 
 impl Db {
     pub fn new(path: &str) -> rusqlite::Result<Self> {
         Ok(Self {
-            name: None,
+            name: Some(path.to_owned()),
             records: vec![],
-            conn: Connection::open(path)?,
+            // conn: Connection::open(path)?,
         })
     }
 
     /// static function that opens db file if it exists
     pub fn open_db_if_exists(name: &str) -> Result<Self, io::Error> {
-        let name = ensure_correct_path(name.to_owned());
+        let name = Self::ensure_correct_path(name.to_owned());
 
         let result = File::open(name.trim());
         match result {
@@ -55,8 +54,7 @@ impl Db {
     }
 
     pub fn create_db(&self) -> Result<(), io::Error> {
-        let name =
-            ensure_correct_path(self.name.clone().unwrap_or("default".to_owned()).to_owned());
+        let name = Self::ensure_correct_path(self.name.clone().unwrap_or("default".to_owned()));
 
         match File::create(name.trim()) {
             Ok(_) => return Ok(()),
@@ -75,28 +73,35 @@ impl Db {
     }
 
     pub fn select_query(&self) -> rusqlite::Result<()> {
-        self.conn.execute(
+        //hmmm neunpackujem?
+        let conn = Connection::open(Self::ensure_correct_path(
+            self.name.clone().expect("DB file not specified"),
+        ))?;
+        conn.execute(
             "create table person (id integer primary key, name text)",
             (),
-        );
-        self.conn
-            .execute("insert into person (id, name) values (?1, ?2)", (1, "Test"))?;
+        )?;
+        conn.execute("insert into person (id, name) values (?1, ?2)", (1, "Test"))?;
 
-        let mut stmt = self.conn.prepare("select * from person")?;
-        stmt.query_map([], |row| {
-            let jupi: String = row.get(0)?;
+        let mut stmt = conn.prepare("select * from person")?;
+        let iter = stmt.query_map([], |row| {
+            let jupi: i32 = row.get(0)?;
             println!("{}", jupi);
             Ok(jupi)
         })?;
+
+        for i in iter {
+            println!("{:?}", i.unwrap());
+        }
+
         Ok(())
     }
-}
-
-fn ensure_correct_path(mut name: String) -> String {
-    if !name.ends_with(".db") {
-        name.push_str(".db");
+    pub fn ensure_correct_path(mut name: String) -> String {
+        if !name.ends_with(".db") {
+            name.push_str(".db");
+        }
+        name
     }
-    name
 }
 
 #[cfg(test)]

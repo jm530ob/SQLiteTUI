@@ -23,7 +23,13 @@ fn setup(frame: &mut Frame, app: &App) {
     draw_background(frame);
     let selected_db = Paragraph::new(format!(
         "Selected db: {}",
-        app.database.clone().unwrap_or("None".to_owned()),
+        if let Some(db) = &app.database {
+            db.name
+                .clone()
+                .unwrap_or("None - file not found".to_owned())
+        } else {
+            "None".to_owned()
+        }
     ));
 
     frame.render_widget(selected_db, frame.size());
@@ -84,12 +90,12 @@ pub fn draw_ui(app: &App, frame: &mut Frame) {
         }
 
         Some(ViewState::Update) => {
-            let test_db = Db {
-                records: vec![Box::new("kokos".to_owned()), Box::new(false), Box::new(10)],
-            };
+            // let test_db = Db {
+            //     records: vec![Box::new("kokos".to_owned()), Box::new(false), Box::new(10)],
+            // };
             // todo!("Layout for table");
             // todo!("Add key handler for adding items in App");
-            draw_items(frame, &test_db);
+            // draw_items(frame, &test_db);
         }
 
         _ => {}
