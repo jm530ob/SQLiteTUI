@@ -20,7 +20,7 @@ pub enum ViewState {
 
 pub struct App {
     pub current_view: Option<ViewState>,
-    pub database: Option<String>,
+    pub database: Option<database::Db>,
     pub display_dialog: bool,
     pub error_message: Option<io::Error>, // go-to dialog
     pub input: String,
@@ -65,8 +65,12 @@ impl App {
             match key_event.code {
                 KeyCode::Char('c') => self.change_view(ViewState::Create),
                 KeyCode::Char('r') => self.change_view(ViewState::Read),
-                KeyCode::Char('u') if self.database != None => self.change_view(ViewState::Update),
-                KeyCode::Char('d') if self.database != None => self.change_view(ViewState::Delete),
+                KeyCode::Char('u') if self.database.is_some() => {
+                    self.change_view(ViewState::Update)
+                }
+                KeyCode::Char('d') if self.database.is_some() => {
+                    self.change_view(ViewState::Delete)
+                }
                 KeyCode::Char('q') => self.current_view = None,
 
                 _ => {}
@@ -87,14 +91,15 @@ impl App {
                 _ => {}
             },
             Some(ViewState::Create) => match key_event.code {
+                // KeyCode::Char("t") => database::
                 KeyCode::Char(ch) => self.input.push(ch),
                 KeyCode::Backspace => {
                     self.input.pop();
                 }
                 KeyCode::Enter => {
-                    self.database = Some(self.input.clone());
-                    if let Some(name) = &self.database {
-                        if let Err(err) = database::create_db(name) {
+                    self.database = Some(database::Db::new(&self.input).unwrap());
+                    if let Some(db) = &self.database {
+                        if let Err(err) = db.create_db() {
                             self.error_message = Some(err);
                         }
                     }
@@ -110,10 +115,9 @@ impl App {
                     self.input.pop();
                 }
                 KeyCode::Enter => {
-                    if let Err(err) = database::open_db_if_exists(&self.input) {
-                        self.error_message = Some(err);
-                    } else {
-                        self.database = Some(self.input.clone());
+                    match database::Db::open_db_if_exists(&self.input) {
+                        Ok(db) => self.database = Some(db),
+                        Err(err) => self.error_message = Some(err),
                     }
                     self.input.clear();
                 }

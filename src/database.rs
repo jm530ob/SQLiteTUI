@@ -4,58 +4,92 @@ use std::{
     io::{self, ErrorKind},
 };
 
-// pub trait Printable {
-//     fn print(&self);
-// }
-
-// impl Printable for i32 {
-//     fn print(&self) {
-//         println!("am a number");
-//     }
-// }
+use rusqlite::Connection;
 
 pub trait SqlDataType: Debug {}
 
 impl SqlDataType for i32 {}
+impl SqlDataType for f32 {}
 impl SqlDataType for String {}
 impl SqlDataType for char {}
 impl SqlDataType for bool {}
 
+pub type SqlType = Box<dyn SqlDataType>;
+
+pub struct Cursor {
+    pub x: usize,
+    pub y: usize,
+    // pub current: (usize, usize),
+}
+
 pub struct Db {
-    pub records: Vec<Box<dyn SqlDataType>>,
+    pub name: Option<String>,
+    pub records: Vec<SqlType>,
+    pub conn: Connection,
 }
 
 impl Db {
-    pub fn add_record(&mut self) {
-        for item in self.records.iter() {
-            println!("{:?}", item);
+    pub fn new(path: &str) -> rusqlite::Result<Self> {
+        Ok(Self {
+            name: None,
+            records: vec![],
+            conn: Connection::open(path)?,
+        })
+    }
+
+    /// static function that opens db file if it exists
+    pub fn open_db_if_exists(name: &str) -> Result<Self, io::Error> {
+        let name = ensure_correct_path(name.to_owned());
+
+        let result = File::open(name.trim());
+        match result {
+            Ok(_) => return Ok(Self::new(&name).expect("Failed to open a DB")),
+            Err(err) => match err.kind() {
+                ErrorKind::NotFound => {
+                    return Err(err);
+                }
+
+                _ => return Err(err),
+            },
+        };
+    }
+
+    pub fn create_db(&self) -> Result<(), io::Error> {
+        let name =
+            ensure_correct_path(self.name.clone().unwrap_or("default".to_owned()).to_owned());
+
+        match File::create(name.trim()) {
+            Ok(_) => return Ok(()),
+            Err(err) => return Err(err),
+        };
+    }
+
+    pub fn add_record(&mut self, sql_type: SqlType) {
+        self.records.push(sql_type);
+    }
+
+    pub fn add_record_list(&mut self, list: Vec<SqlType>) {
+        for sql_type in list {
+            self.add_record(sql_type);
         }
     }
-}
 
-pub fn create_db(name: &str) -> Result<(), io::Error> {
-    let name = ensure_correct_path(name.to_owned());
+    pub fn select_query(&self) -> rusqlite::Result<()> {
+        self.conn.execute(
+            "create table person (id integer primary key, name text)",
+            (),
+        );
+        self.conn
+            .execute("insert into person (id, name) values (?1, ?2)", (1, "Test"))?;
 
-    match File::create(name.trim()) {
-        Ok(_) => return Ok(()),
-        Err(err) => return Err(err),
-    };
-}
-
-pub fn open_db_if_exists(name: &str) -> Result<(), io::Error> {
-    let name = ensure_correct_path(name.to_owned());
-
-    let result = File::open(name.trim());
-    match result {
-        Ok(_) => return Ok(()),
-        Err(err) => match err.kind() {
-            ErrorKind::NotFound => {
-                return Err(err);
-            }
-
-            _ => return Err(err),
-        },
-    };
+        let mut stmt = self.conn.prepare("select * from person")?;
+        stmt.query_map([], |row| {
+            let jupi: String = row.get(0)?;
+            println!("{}", jupi);
+            Ok(jupi)
+        })?;
+        Ok(())
+    }
 }
 
 fn ensure_correct_path(mut name: String) -> String {
@@ -72,7 +106,10 @@ mod tests {
     #[test]
     fn create_db_file_from_path() {
         let path = "test.db";
-        super::create_db(path).expect("Failed to create a new DB file with name: {}");
+        super::Db::new(path)
+            .unwrap()
+            .create_db()
+            .expect("Failed to create a new DB file with name: {}");
 
         assert!(Path::new(path).exists());
 
