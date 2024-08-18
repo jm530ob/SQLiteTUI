@@ -101,7 +101,7 @@ impl App {
                         if let Err(err) = db.create_db() {
                             self.error_message = Some(err);
                         }
-                        db.select_query().unwrap();
+                        db.store_table().unwrap();
                     }
                     self.input.clear();
                     self.change_view(ViewState::Update);

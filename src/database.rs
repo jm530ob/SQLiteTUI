@@ -4,17 +4,17 @@ use std::{
     io::{self, ErrorKind},
 };
 
-use rusqlite::Connection;
+use rusqlite::{types, Connection};
 
-pub trait SqlDataType: Debug {}
+// pub trait SqlDataType: Debug {}
 
-impl SqlDataType for i32 {}
-impl SqlDataType for f32 {}
-impl SqlDataType for String {}
-impl SqlDataType for char {}
-impl SqlDataType for bool {}
+// impl SqlDataType for i32 {}
+// impl SqlDataType for f32 {}
+// impl SqlDataType for String {}
+// impl SqlDataType for char {}
+// impl SqlDataType for bool {}
 
-pub type SqlType = Box<dyn SqlDataType>;
+// pub type SqlTypeObj = Box<dyn SqlDataType>;
 
 pub struct Cursor {
     pub x: usize,
@@ -24,7 +24,7 @@ pub struct Cursor {
 
 pub struct Db {
     pub name: Option<String>,
-    pub records: Vec<SqlType>,
+    pub records: Vec<types::Value>,
 }
 
 impl Db {
@@ -32,7 +32,6 @@ impl Db {
         Ok(Self {
             name: Some(path.to_owned()),
             records: vec![],
-            // conn: Connection::open(path)?,
         })
     }
 
@@ -43,13 +42,8 @@ impl Db {
         let result = File::open(name.trim());
         match result {
             Ok(_) => return Ok(Self::new(&name).expect("Failed to open a DB")),
-            Err(err) => match err.kind() {
-                ErrorKind::NotFound => {
-                    return Err(err);
-                }
 
-                _ => return Err(err),
-            },
+            Err(err) => return Err(err),
         };
     }
 
@@ -62,31 +56,31 @@ impl Db {
         };
     }
 
-    pub fn add_record(&mut self, sql_type: SqlType) {
+    pub fn add_record(&mut self, sql_type: types::Value) {
         self.records.push(sql_type);
     }
 
-    pub fn add_record_list(&mut self, list: Vec<SqlType>) {
+    pub fn add_record_list(&mut self, list: Vec<types::Value>) {
         for sql_type in list {
             self.add_record(sql_type);
         }
     }
 
-    pub fn select_query(&self) -> rusqlite::Result<()> {
+    pub fn store_table(&self) -> rusqlite::Result<()> {
         //hmmm neunpackujem?
         let conn = Connection::open(Self::ensure_correct_path(
             self.name.clone().expect("DB file not specified"),
         ))?;
         conn.execute(
-            "create table person (id integer primary key, name text)",
+            "create table if not exists person (id integer primary key, name text)",
             (),
         )?;
+
         conn.execute("insert into person (id, name) values (?1, ?2)", (1, "Test"))?;
 
-        let mut stmt = conn.prepare("select * from person")?;
+        let mut stmt = conn.prepare("select name from sqlite_master where type='table'")?;
         let iter = stmt.query_map([], |row| {
-            let jupi: i32 = row.get(0)?;
-            println!("{}", jupi);
+            let jupi: String = row.get(0)?;
             Ok(jupi)
         })?;
 
