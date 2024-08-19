@@ -1,6 +1,7 @@
 // use std::io::Error;
 use std::vec;
 
+use crossterm::terminal::Clear;
 use layout::Rows;
 use ratatui::{
     prelude::*,
@@ -10,7 +11,7 @@ use ratatui::{
     },
 };
 
-use crate::app::{App, ViewState};
+use crate::app::{App, AppState, ViewState};
 use crate::database::Db;
 
 mod popup;
@@ -23,13 +24,7 @@ fn setup(frame: &mut Frame, app: &App) {
     draw_background(frame);
     let selected_db = Paragraph::new(format!(
         "Selected db: {}",
-        if let Some(db) = &app.database {
-            db.name
-                .clone()
-                .unwrap_or("None - file not found".to_owned())
-        } else {
-            "None".to_owned()
-        }
+        app.db.db_name.clone().unwrap_or("None".to_owned())
     ));
 
     frame.render_widget(selected_db, frame.size());
@@ -98,6 +93,15 @@ pub fn draw_ui(app: &App, frame: &mut Frame) {
             // draw_items(frame, &test_db);
         }
 
+        _ => {}
+    }
+
+    match app.app_state {
+        Some(AppState::Receiving(ViewState::Create)) => {
+            // frame.render_widget(Clear, frame.size());
+        }
+        Some(AppState::Receiving(ViewState::Read)) => {}
+        Some(AppState::Editing) => {}
         _ => {}
     }
     if app.display_dialog {

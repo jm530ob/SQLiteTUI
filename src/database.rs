@@ -8,6 +8,11 @@ use rusqlite::{types, Connection};
 
 use crate::app::{AppState, ViewState};
 
+pub enum InputState {
+    Table,
+    Attributes,
+}
+
 pub struct Cursor {
     pub x: usize,
     pub y: usize,
@@ -16,16 +21,20 @@ pub struct Cursor {
 
 pub struct Db {
     pub db_name: Option<String>,
-    pub table_name: Option<String>,
+    pub table_name: String,
+    pub attributes: String, // todo: parse args
     pub records: Vec<types::Value>,
+    pub input_state: InputState,
 }
 
 impl Db {
     pub fn new() -> rusqlite::Result<Self> {
         Ok(Self {
             db_name: None,
-            table_name: None,
+            table_name: String::new(),
+            attributes: String::new(),
             records: vec![],
+            input_state: InputState::Table,
         })
     }
 
@@ -61,6 +70,13 @@ impl Db {
     }
 
     pub fn select_table(&self) {}
+
+    pub fn toggle_input_state(&mut self) {
+        match self.input_state {
+            InputState::Table => self.input_state = InputState::Attributes,
+            InputState::Attributes => self.input_state = InputState::Table,
+        }
+    }
 
     pub fn ensure_correct_path(mut name: String) -> String {
         if !name.ends_with(".db") {

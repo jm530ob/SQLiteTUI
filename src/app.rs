@@ -3,7 +3,10 @@ use std::io;
 use crossterm::event::{self, Event, KeyCode, KeyEvent, KeyEventKind};
 use serde::de::value::Error;
 
-use crate::{database::Db, tui, ui};
+use crate::{
+    database::{Db, InputState},
+    tui, ui,
+};
 
 pub enum AppState {
     Receiving(ViewState),
@@ -16,6 +19,7 @@ pub enum ViewState {
     Read,
     Update,
     Delete,
+    Exiting,
 }
 
 pub struct App {
@@ -46,7 +50,7 @@ impl App {
             }
             terminal.draw(|frame| ui::draw_ui(self, frame))?;
 
-            if let None = self.current_view {
+            if let Some(ViewState::Exiting) = self.current_view {
                 break;
             }
         }
@@ -69,7 +73,7 @@ impl App {
                 KeyCode::Char('r') => self.change_view(ViewState::Read),
                 KeyCode::Char('u') => self.change_view(ViewState::Update),
                 KeyCode::Char('d') => self.change_view(ViewState::Delete),
-                KeyCode::Char('q') => self.current_view = None,
+                KeyCode::Char('q') => self.current_view = Some(ViewState::Exiting),
 
                 _ => {}
             }
@@ -140,11 +144,31 @@ impl App {
 
         match self.app_state {
             Some(AppState::Receiving(ViewState::Create)) => {
-                match key_event.code {
-                    KeyCode::Char(ch) => {
-                        self.input.push(ch);
-                    }
-                    KeyCode::Backspace => self.input.pop(),
+                match self.db.input_state {
+                    InputState::Table => match key_event.code {
+                        KeyCode::Char(ch) => {
+                            self.db.table_name.push(ch);
+                        }
+                        KeyCode::Backspace => {
+                            self.db.table_name.pop();
+                        }
+                        KeyCode::Tab => {
+                            self.db.toggle_input_state();
+                        }
+                        _ => {}
+                    },
+                    InputState::Attributes => match key_event.code {
+                        KeyCode::Char(ch) => {
+                            self.db.attributes.push(ch);
+                        }
+                        KeyCode::Backspace => {
+                            self.db.attributes.pop();
+                        }
+                        KeyCode::Tab => {
+                            self.db.toggle_input_state();
+                        }
+                        _ => {}
+                    },
                 }
                 // self.db.records.push(10.into());
             }
@@ -174,6 +198,7 @@ impl App {
         }
         Ok(())
     }
+
     fn exit(&mut self) {
         //
         self.current_view = None;
