@@ -3,11 +3,11 @@ use std::io;
 use crossterm::event::{self, Event, KeyCode, KeyEvent, KeyEventKind};
 use serde::de::value::Error;
 
-use crate::{database, tui, ui};
+use crate::{database::Db, tui, ui};
 
-pub enum LogicalState {
+pub enum AppState {
+    Receiving(ViewState),
     Editing,
-    Viewing,
 }
 
 pub enum ViewState {
@@ -20,7 +20,8 @@ pub enum ViewState {
 
 pub struct App {
     pub current_view: Option<ViewState>,
-    pub database: Option<database::Db>,
+    pub app_state: Option<AppState>,
+    pub db: Db,
     pub display_dialog: bool,
     pub error_message: Option<io::Error>, // go-to dialog
     pub input: String,
@@ -30,10 +31,11 @@ impl App {
     pub fn new() -> Self {
         Self {
             current_view: Some(ViewState::Main),
+            app_state: None,
+            db: Db::new().expect("Could not create DB instance"),
             display_dialog: false,
             error_message: None,
             input: String::new(),
-            database: None,
         }
     }
 
@@ -65,12 +67,8 @@ impl App {
             match key_event.code {
                 KeyCode::Char('c') => self.change_view(ViewState::Create),
                 KeyCode::Char('r') => self.change_view(ViewState::Read),
-                KeyCode::Char('u') if self.database.is_some() => {
-                    self.change_view(ViewState::Update)
-                }
-                KeyCode::Char('d') if self.database.is_some() => {
-                    self.change_view(ViewState::Delete)
-                }
+                KeyCode::Char('u') => self.change_view(ViewState::Update),
+                KeyCode::Char('d') => self.change_view(ViewState::Delete),
                 KeyCode::Char('q') => self.current_view = None,
 
                 _ => {}
@@ -96,15 +94,16 @@ impl App {
                     self.input.pop();
                 }
                 KeyCode::Enter => {
-                    self.database = Some(database::Db::new(&self.input).unwrap());
-                    if let Some(db) = &self.database {
-                        if let Err(err) = db.create_db() {
-                            self.error_message = Some(err);
-                        }
-                        db.store_table().unwrap();
+                    if !self.input.is_empty() {
+                        self.db.db_name = Some(self.input.clone());
                     }
+                    if let Err(err) = self.db.create_db() {
+                        self.error_message = Some(err);
+                    }
+                    self.change_app_state();
+                    // self.db.select_table(&self.current_view).unwrap();
+                    self.current_view = None;
                     self.input.clear();
-                    self.change_view(ViewState::Update);
                 }
 
                 _ => {}
@@ -115,10 +114,17 @@ impl App {
                     self.input.pop();
                 }
                 KeyCode::Enter => {
-                    match database::Db::open_db_if_exists(&self.input) {
-                        Ok(db) => self.database = Some(db),
-                        Err(err) => self.error_message = Some(err),
+                    if !self.input.is_empty() {
+                        self.db.db_name = Some(self.input.clone());
                     }
+                    if let Err(err) = self.db.open_db_if_exists() {
+                        self.error_message = Some(err);
+                    }
+
+                    self.change_app_state();
+                    // self.db.select_table(&self.current_view).unwrap();
+
+                    self.current_view = None;
                     self.input.clear();
                 }
                 _ => {}
@@ -131,6 +137,13 @@ impl App {
             },
             _ => {}
         }
+
+        match self.app_state {
+            Some(AppState::Receiving(ViewState::Create)) => {}
+            Some(AppState::Receiving(ViewState::Read)) => {}
+            Some(AppState::Editing) => {}
+            _ => {}
+        }
     }
 
     // for item
@@ -138,6 +151,21 @@ impl App {
         self.current_view = Some(view);
     }
 
+    pub fn change_app_state(&mut self) -> io::Result<()> {
+        if self.current_view.is_none() {
+            return Err(io::Error::new(
+                io::ErrorKind::Other,
+                "state has to be initialized at this point",
+            ));
+        }
+
+        match self.current_view.as_ref().unwrap() {
+            ViewState::Create => self.app_state = Some(AppState::Receiving(ViewState::Create)),
+            ViewState::Read => self.app_state = Some(AppState::Receiving(ViewState::Read)),
+            _ => {}
+        }
+        Ok(())
+    }
     fn exit(&mut self) {
         //
         self.current_view = None;
