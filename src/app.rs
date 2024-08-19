@@ -139,7 +139,15 @@ impl App {
         }
 
         match self.app_state {
-            Some(AppState::Receiving(ViewState::Create)) => {}
+            Some(AppState::Receiving(ViewState::Create)) => {
+                match key_event.code {
+                    KeyCode::Char(ch) => {
+                        self.input.push(ch);
+                    }
+                    KeyCode::Backspace => self.input.pop(),
+                }
+                // self.db.records.push(10.into());
+            }
             Some(AppState::Receiving(ViewState::Read)) => {}
             Some(AppState::Editing) => {}
             _ => {}
