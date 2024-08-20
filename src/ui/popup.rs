@@ -5,6 +5,7 @@ use ratatui::widgets::{Block, Clear, Paragraph, Widget};
 #[derive(Debug)]
 pub struct Popup<'a> {
     pub content: Text<'a>,
+    pub layout: Layout,
     pub block: Block<'a>,
     pub style: Style,
     pub width: u16,
@@ -16,6 +17,7 @@ impl<'a> Popup<'a> {
     pub fn new() -> Self {
         Self {
             content: Text::default(),
+            layout: Layout::default(),
             style: Style::default(),
             block: Block::bordered(),
             width: 0,
@@ -40,6 +42,11 @@ impl<'a> Popup<'a> {
 
     pub fn style(mut self, style: Style) -> Self {
         self.style = style;
+        self
+    }
+
+    pub fn layout(mut self, layout: Layout) -> Self {
+        self.layout = layout;
         self
     }
 

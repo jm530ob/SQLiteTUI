@@ -10,6 +10,7 @@ use ratatui::{
         Block, Paragraph, Row, Table,
     },
 };
+use rusqlite::Params;
 
 use crate::app::{App, AppState, ViewState};
 use crate::database::Db;
@@ -17,8 +18,9 @@ use crate::database::Db;
 mod popup;
 use popup::Popup;
 
-const CUSTOM_BLUE: Color = Color::Rgb(96, 164, 229);
-const CUSTOM_BG: Color = Color::Rgb(16, 31, 65);
+const BLUE: Color = Color::Rgb(129, 161, 193);
+const WIDGET_COLOR: Color = Color::Rgb(59, 66, 82);
+const BG_COLOR: Color = Color::Rgb(46, 52, 64);
 
 fn setup(frame: &mut Frame, app: &App) {
     draw_background(frame);
@@ -48,7 +50,7 @@ pub fn draw_ui(app: &App, frame: &mut Frame) {
                 .split(layout[2]);
 
             let banner = Paragraph::new(Text::from(vec![
-                Line::from(" Welcome to Sqlite TUI Manager ").black().on_white(),
+                Line::from(" Welcome to Sqlite TUI Manager ").style(Style::default().fg(Color::Black).bg(Color::Rgb(229, 233, 240))),
                 Line::from("This project is meant to be a lightweight and fast alternative"),
                 Line::from(
                     "to other Sqlite DB manager tools, usually implemented with graphical user interfaces.",
@@ -59,14 +61,14 @@ pub fn draw_ui(app: &App, frame: &mut Frame) {
             .centered();
 
             let quit = Paragraph::new(Line::from(vec![
-                Span::from("<q> ".fg(CUSTOM_BLUE).bold()),
+                Span::from("<q> ".fg(BLUE).bold()),
                 Span::from("to quit"),
             ]))
-            .block(Block::bordered().title("Q"))
-            .centered();
+            .centered()
+            .block(Block::bordered().title("Q"));
 
             let open = Paragraph::new(Line::from(vec![
-                Span::from("<Space> ".fg(CUSTOM_BLUE).bold()),
+                Span::from("<Space> ".fg(BLUE).bold()),
                 Span::from("to open/close dialog"),
             ]))
             .centered()
@@ -98,6 +100,8 @@ pub fn draw_ui(app: &App, frame: &mut Frame) {
 
     match app.app_state {
         Some(AppState::Receiving(ViewState::Create)) => {
+            draw_app_input(frame, app);
+            // let popup = Popup::
             // frame.render_widget(Clear, frame.size());
         }
         Some(AppState::Receiving(ViewState::Read)) => {}
@@ -118,10 +122,41 @@ fn draw_input_popup(frame: &mut Frame, app: &App, text: &str) {
     let input_popup = Popup::new()
         .block(Block::bordered().title(Title::from(Line::from(text.bold()))))
         .content(Text::from(&*app.input.trim()))
-        .style(Style::new().bg(CUSTOM_BG))
+        .style(Style::new().bg(WIDGET_COLOR))
         .w(35)
         .h((lines.len() + 2) as u16);
     frame.render_widget(input_popup, frame.size());
+}
+
+pub fn draw_app_input(frame: &mut Frame, app: &App) {
+    let layout = Layout::default()
+        .direction(Direction::Vertical)
+        .constraints(vec![
+            Constraint::Min(1),
+            Constraint::Length(3),
+            Constraint::Min(1),
+        ])
+        .split(frame.size());
+
+    let inner_layout = Layout::default()
+        .direction(Direction::Horizontal)
+        .constraints(vec![
+            Constraint::Percentage(20),
+            Constraint::Percentage(15),
+            Constraint::Percentage(45),
+            Constraint::Percentage(20),
+        ])
+        .split(layout[1]);
+
+    let table_input = Paragraph::new(app.db.table_name.clone())
+        .block(Block::bordered().title("Table"))
+        .style(Style::new().bg(WIDGET_COLOR));
+    let attributes_input = Paragraph::new(app.db.attributes.clone())
+        .block(Block::bordered().title("Attribute/s (separate by comma)"))
+        .style(Style::new().bg(WIDGET_COLOR));
+
+    frame.render_widget(table_input, inner_layout[1]);
+    frame.render_widget(attributes_input, inner_layout[2]);
 }
 
 pub fn draw_items(frame: &mut Frame, db: &Db) {
@@ -144,13 +179,13 @@ fn draw_err_popup(frame: &mut Frame, err: &std::io::Error) {
     let error_dialog = Popup::new()
         .block(
             Block::bordered().title(Title::from("<Error>".red())).title(
-                Title::from(format!("{} {}", "<Esc>".fg(CUSTOM_BLUE).bold(), "to close"))
+                Title::from(format!("{} {}", "<Esc>".fg(BLUE).bold(), "to close"))
                     .alignment(Alignment::Right)
                     .position(Position::Bottom),
             ),
         )
         .content(Text::from(message.clone()))
-        .style(Style::new().bg(CUSTOM_BG))
+        .style(Style::new().bg(WIDGET_COLOR))
         .w((message.chars().count() + 2) as u16)
         .h(4);
 
@@ -159,7 +194,7 @@ fn draw_err_popup(frame: &mut Frame, err: &std::io::Error) {
 
 fn draw_goto_popup(frame: &mut Frame) {
     let main_dialog = Popup::new()
-        .block(Block::bordered().title("<Space>".fg(CUSTOM_BLUE).bold()))
+        .block(Block::bordered().title("<Space>".fg(BLUE).bold()))
         .content(Text::from(vec![
             Line::from("c - create new database"),
             Line::from("r - read/select database"),
@@ -167,7 +202,7 @@ fn draw_goto_popup(frame: &mut Frame) {
             Line::from("d - delete current database"),
             Line::from("q - exit"),
         ]))
-        .style(Style::new().bg(CUSTOM_BG))
+        .style(Style::new().bg(WIDGET_COLOR))
         .w(30)
         .h(7);
 
@@ -177,6 +212,6 @@ fn draw_goto_popup(frame: &mut Frame) {
 fn draw_exit_popup(frame: &mut Frame) {}
 
 fn draw_background(frame: &mut Frame) {
-    let bg = Block::default().style(Style::new().bg(CUSTOM_BG));
+    let bg = Block::default().style(Style::new().bg(BG_COLOR));
     frame.render_widget(bg, frame.size());
 }

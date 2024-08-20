@@ -31,8 +31,8 @@ impl Db {
     pub fn new() -> rusqlite::Result<Self> {
         Ok(Self {
             db_name: None,
-            table_name: String::new(),
-            attributes: String::new(),
+            table_name: String::from(""),
+            attributes: String::from(""),
             records: vec![],
             input_state: InputState::Table,
         })

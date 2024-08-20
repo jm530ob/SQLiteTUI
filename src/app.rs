@@ -1,6 +1,9 @@
 use std::io;
 
-use crossterm::event::{self, Event, KeyCode, KeyEvent, KeyEventKind};
+use crossterm::event::{
+    self, Event, KeyCode, KeyEvent, KeyEventKind, KeyModifiers, ModifierKeyCode,
+};
+use ratatui::style::Modifier;
 use serde::de::value::Error;
 
 use crate::{
@@ -73,7 +76,7 @@ impl App {
                 KeyCode::Char('r') => self.change_view(ViewState::Read),
                 KeyCode::Char('u') => self.change_view(ViewState::Update),
                 KeyCode::Char('d') => self.change_view(ViewState::Delete),
-                KeyCode::Char('q') => self.current_view = Some(ViewState::Exiting),
+                KeyCode::Char('q') => self.change_view(ViewState::Exiting),
 
                 _ => {}
             }
@@ -81,9 +84,19 @@ impl App {
             return;
         };
 
-        match key_event.code {
-            KeyCode::Char(' ') => self.display_dialog = true,
-            KeyCode::Esc => self.error_message = None,
+        match key_event {
+            KeyEvent {
+                modifiers: KeyModifiers::CONTROL,
+                code: KeyCode::Char('o'), // open
+                ..
+            } => {
+                self.display_dialog = true;
+            }
+            KeyEvent {
+                code: KeyCode::Esc, ..
+            } => {
+                self.error_message = None;
+            }
             _ => {}
         }
 
@@ -144,6 +157,14 @@ impl App {
 
         match self.app_state {
             Some(AppState::Receiving(ViewState::Create)) => {
+                match key_event.code {
+                    KeyCode::Enter => {
+                        // parse_table()
+                        // self.app_state = None;
+                        // self.change_view(ViewState::Update);
+                    }
+                    _ => {}
+                }
                 match self.db.input_state {
                     InputState::Table => match key_event.code {
                         KeyCode::Char(ch) => {
