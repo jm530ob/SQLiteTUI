@@ -68,7 +68,7 @@ pub fn draw_ui(app: &App, frame: &mut Frame) {
             .block(Block::bordered().title("Q"));
 
             let open = Paragraph::new(Line::from(vec![
-                Span::from("<Space> ".fg(BLUE).bold()),
+                Span::from("<Ctrl + o> ".fg(BLUE).bold()),
                 Span::from("to open/close dialog"),
             ]))
             .centered()
@@ -151,7 +151,7 @@ pub fn draw_app_input(frame: &mut Frame, app: &App) {
     let table_input = Paragraph::new(app.db.table_name.clone())
         .block(Block::bordered().title("Table"))
         .style(Style::new().bg(WIDGET_COLOR));
-    let attributes_input = Paragraph::new(app.db.attributes.clone())
+    let attributes_input = Paragraph::new(app.db.column.clone())
         .block(Block::bordered().title("Attribute/s (separate by comma)"))
         .style(Style::new().bg(WIDGET_COLOR));
 
@@ -194,7 +194,7 @@ fn draw_err_popup(frame: &mut Frame, err: &std::io::Error) {
 
 fn draw_goto_popup(frame: &mut Frame) {
     let main_dialog = Popup::new()
-        .block(Block::bordered().title("<Space>".fg(BLUE).bold()))
+        .block(Block::bordered().title("<Action>".fg(BLUE).bold()))
         .content(Text::from(vec![
             Line::from("c - create new database"),
             Line::from("r - read/select database"),

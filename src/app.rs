@@ -121,6 +121,7 @@ impl App {
                     // self.db.select_table(&self.current_view).unwrap();
                     self.current_view = None;
                     self.input.clear();
+                    return;
                 }
 
                 _ => {}
@@ -159,8 +160,8 @@ impl App {
             Some(AppState::Receiving(ViewState::Create)) => {
                 match key_event.code {
                     KeyCode::Enter => {
-                        // parse_table()
-                        // self.app_state = None;
+                        self.db.parse_table().expect("Ano, Hej, mhmm");
+                        self.app_state = None;
                         // self.change_view(ViewState::Update);
                     }
                     _ => {}
@@ -178,12 +179,12 @@ impl App {
                         }
                         _ => {}
                     },
-                    InputState::Attributes => match key_event.code {
+                    InputState::Column => match key_event.code {
                         KeyCode::Char(ch) => {
-                            self.db.attributes.push(ch);
+                            self.db.column.push(ch);
                         }
                         KeyCode::Backspace => {
-                            self.db.attributes.pop();
+                            self.db.column.pop();
                         }
                         KeyCode::Tab => {
                             self.db.toggle_input_state();
@@ -224,7 +225,6 @@ impl App {
         //
         self.current_view = None;
     }
-    //fn ok($mu)
 }
 
 #[cfg(test)]

@@ -10,7 +10,7 @@ use crate::app::{AppState, ViewState};
 
 pub enum InputState {
     Table,
-    Attributes,
+    Column,
 }
 
 pub struct Cursor {
@@ -22,7 +22,13 @@ pub struct Cursor {
 pub struct Db {
     pub db_name: Option<String>,
     pub table_name: String,
-    pub attributes: String, // todo: parse args
+    /// Raw input separated by comma
+    pub column: String,
+    /// Attributes, containing constraints and other meta data
+    pub parsed_column: Vec<Vec<String>>,
+    /// Clean list of current column names
+    pub col_names: Vec<String>,
+    /// Rows
     pub records: Vec<types::Value>,
     pub input_state: InputState,
 }
@@ -32,7 +38,9 @@ impl Db {
         Ok(Self {
             db_name: None,
             table_name: String::from(""),
-            attributes: String::from(""),
+            column: String::from(""),
+            parsed_column: vec![],
+            col_names: vec![],
             records: vec![],
             input_state: InputState::Table,
         })
@@ -45,8 +53,13 @@ impl Db {
         let result = File::open(name.trim());
         match result {
             Ok(_) => return Ok(()),
-
-            Err(err) => return Err(err),
+            Err(err) => {
+                if err.kind() == ErrorKind::NotFound {
+                    self.create_db();
+                    return Ok(());
+                }
+                return Err(err);
+            }
         };
     }
 
@@ -57,6 +70,37 @@ impl Db {
             Ok(_) => return Ok(()),
             Err(err) => return Err(err),
         };
+    }
+
+    pub fn parse_table(&mut self) -> io::Result<()> {
+        self.parsed_column = self
+            .column
+            .trim()
+            .split(",")
+            .map(|col| {
+                col.split_whitespace()
+                    .map(|constraint| constraint.to_owned())
+                    .collect()
+            })
+            .collect();
+        self.col_names = self
+            .parsed_column
+            .iter()
+            .filter_map(|elm| elm.first().cloned())
+            .collect();
+        let conn =
+            Connection::open(Self::ensure_correct_path(self.db_name.clone().unwrap())).unwrap();
+        // println!("{}", self.col_names.join(","));
+        conn.execute(
+            &format!(
+                "create table {} ({})",
+                self.table_name,
+                self.col_names.join(",")
+            ),
+            (),
+        )
+        .unwrap();
+        Ok(())
     }
 
     pub fn add_record(&mut self, sql_type: types::Value) {
@@ -73,8 +117,8 @@ impl Db {
 
     pub fn toggle_input_state(&mut self) {
         match self.input_state {
-            InputState::Table => self.input_state = InputState::Attributes,
-            InputState::Attributes => self.input_state = InputState::Table,
+            InputState::Table => self.input_state = InputState::Column,
+            InputState::Column => self.input_state = InputState::Table,
         }
     }
 
