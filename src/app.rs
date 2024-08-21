@@ -162,7 +162,7 @@ impl App {
                     KeyCode::Enter => {
                         self.db.parse_table().expect("Ano, Hej, mhmm");
                         self.app_state = None;
-                        // self.change_view(ViewState::Update);
+                        self.change_view(ViewState::Update);
                     }
                     _ => {}
                 }

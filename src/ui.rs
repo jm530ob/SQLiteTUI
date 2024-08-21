@@ -7,7 +7,7 @@ use ratatui::{
     prelude::*,
     widgets::{
         block::{Position, Title},
-        Block, Paragraph, Row, Table,
+        Block, Cell, Paragraph, Row, Table,
     },
 };
 use rusqlite::Params;
@@ -22,8 +22,7 @@ const BLUE: Color = Color::Rgb(129, 161, 193);
 const WIDGET_COLOR: Color = Color::Rgb(59, 66, 82);
 const BG_COLOR: Color = Color::Rgb(46, 52, 64);
 
-fn setup(frame: &mut Frame, app: &App) {
-    draw_background(frame);
+fn info_log(frame: &mut Frame, app: &App) {
     let selected_db = Paragraph::new(format!(
         "Selected db: {}",
         app.db.db_name.clone().unwrap_or("None".to_owned())
@@ -32,7 +31,7 @@ fn setup(frame: &mut Frame, app: &App) {
     frame.render_widget(selected_db, frame.size());
 }
 pub fn draw_ui(app: &App, frame: &mut Frame) {
-    setup(frame, app);
+    draw_background(frame);
     match app.current_view {
         Some(ViewState::Main) => {
             let layout = Layout::default()
@@ -87,6 +86,36 @@ pub fn draw_ui(app: &App, frame: &mut Frame) {
         }
 
         Some(ViewState::Update) => {
+            let layout = Layout::default()
+                .direction(Direction::Vertical)
+                .constraints(vec![Constraint::Length(3), Constraint::Min(5)])
+                .split(frame.size());
+            let table = Table::new(
+                vec![
+                    Row::new(vec![Line::from("Center")]).height(4),
+                    Row::new(vec![Line::from("Center")]).height(4),
+                    Row::new(vec![Line::from("Center")]).height(4),
+                    Row::new(vec![Line::from("Center")]).height(4),
+                    Row::new(vec![Line::from("Center")]).height(4),
+                    Row::new(vec![Line::from("Center")]).height(4),
+                    Row::new(vec![Line::from("Center")]).height(4),
+                    Row::new(vec![Line::from("Center")]).height(4),
+                    Row::new(vec![Line::from("Center")]).height(4),
+                    Row::new(vec![Line::from("Center")]).height(4),
+                    Row::new(vec![Line::from("Center")]).height(4),
+                ],
+                [Constraint::Percentage(50), Constraint::Percentage(50)],
+            )
+            .header(
+                ["Name", "Address", "Email"]
+                    .into_iter()
+                    .map(Cell::from)
+                    .collect::<Row>()
+                    .height(1),
+            )
+            .style(Style::new().bg(WIDGET_COLOR));
+
+            frame.render_widget(table, layout[1]);
             // let test_db = Db {
             //     records: vec![Box::new("kokos".to_owned()), Box::new(false), Box::new(10)],
             // };
