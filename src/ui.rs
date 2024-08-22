@@ -1,8 +1,6 @@
 // use std::io::Error;
 use std::vec;
 
-use crossterm::terminal::Clear;
-use layout::Rows;
 use ratatui::{
     prelude::*,
     widgets::{
@@ -11,6 +9,7 @@ use ratatui::{
     },
 };
 use rusqlite::Params;
+use style::Styled;
 
 use crate::app::{App, AppState, ViewState};
 use crate::database::Db;
@@ -90,30 +89,41 @@ pub fn draw_ui(app: &App, frame: &mut Frame) {
                 .direction(Direction::Vertical)
                 .constraints(vec![Constraint::Length(3), Constraint::Min(5)])
                 .split(frame.size());
-            let table = Table::new(
-                vec![
-                    Row::new(vec![Line::from("Center")]).height(4),
-                    Row::new(vec![Line::from("Center")]).height(4),
-                    Row::new(vec![Line::from("Center")]).height(4),
-                    Row::new(vec![Line::from("Center")]).height(4),
-                    Row::new(vec![Line::from("Center")]).height(4),
-                    Row::new(vec![Line::from("Center")]).height(4),
-                    Row::new(vec![Line::from("Center")]).height(4),
-                    Row::new(vec![Line::from("Center")]).height(4),
-                    Row::new(vec![Line::from("Center")]).height(4),
-                    Row::new(vec![Line::from("Center")]).height(4),
-                    Row::new(vec![Line::from("Center")]).height(4),
-                ],
-                [Constraint::Percentage(50), Constraint::Percentage(50)],
-            )
-            .header(
-                ["Name", "Address", "Email"]
-                    .into_iter()
-                    .map(Cell::from)
-                    .collect::<Row>()
-                    .height(1),
-            )
-            .style(Style::new().bg(WIDGET_COLOR));
+
+            let header_style = Style::default().bg(WIDGET_COLOR);
+            let header = app
+                .db
+                .col_names
+                .iter()
+                .map(|col| {
+                    Cell::from(
+                        Text::from(col.as_str())
+                            .style(header_style)
+                            .alignment(Alignment::Center),
+                    )
+                })
+                .collect::<Row>()
+                .height(1); // apply to all
+
+            let rows = app
+                .db
+                .records
+                .iter()
+                .map(|row| {
+                    row.iter()
+                        .map(|item| Cell::from(item.as_str()))
+                        .collect::<Row>() // convert each item into a row
+                })
+                .collect::<Vec<Row>>(); // and collect them into the vector
+
+            let constraints = app
+                .db
+                .col_names
+                .iter()
+                .map(|col| Constraint::Length((col.len() + 2) as u16)) // +2 for padding
+                .collect::<Vec<Constraint>>();
+
+            let table = Table::new(rows, constraints).header(header);
 
             frame.render_widget(table, layout[1]);
             // let test_db = Db {

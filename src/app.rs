@@ -1,10 +1,9 @@
+use core::panic;
 use std::io;
 
 use crossterm::event::{
     self, Event, KeyCode, KeyEvent, KeyEventKind, KeyModifiers, ModifierKeyCode,
 };
-use ratatui::style::Modifier;
-use serde::de::value::Error;
 
 use crate::{
     database::{Db, InputState},
@@ -147,7 +146,21 @@ impl App {
                 }
                 _ => {}
             },
-            Some(ViewState::Update) => match key_event.code {
+            Some(ViewState::Update) => match key_event {
+                KeyEvent {
+                    modifiers: KeyModifiers::CONTROL,
+                    code: KeyCode::Char('n'),
+                    ..
+                } => {
+                    self.db.pop_record();
+                }
+                KeyEvent {
+                    code: KeyCode::Char('n'),
+                    ..
+                } => {
+                    self.db.add_record();
+                }
+
                 _ => {}
             },
             Some(ViewState::Delete) => match key_event.code {

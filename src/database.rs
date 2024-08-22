@@ -4,7 +4,7 @@ use std::{
     io::{self, Error, ErrorKind},
 };
 
-use rusqlite::{types, Connection};
+use rusqlite::{types, Connection, ToSql};
 
 use crate::app::{AppState, ViewState};
 
@@ -28,8 +28,8 @@ pub struct Db {
     pub parsed_column: Vec<Vec<String>>,
     /// Clean list of current column names
     pub col_names: Vec<String>,
-    /// Rows
-    pub records: Vec<types::Value>,
+    /// List of rows
+    pub records: Vec<Vec<String>>,
     pub input_state: InputState,
 }
 
@@ -103,14 +103,16 @@ impl Db {
         Ok(())
     }
 
-    pub fn add_record(&mut self, sql_type: types::Value) {
-        self.records.push(sql_type);
+    // pub fn update_table(&self) {}
+
+    pub fn add_record(&mut self) {
+        // initialize vec with empty strings
+        self.records
+            .push(vec![String::from("hello"); self.col_names.len()]);
     }
 
-    pub fn add_record_list(&mut self, list: Vec<types::Value>) {
-        for sql_type in list {
-            self.add_record(sql_type);
-        }
+    pub fn pop_record(&mut self) {
+        self.records.pop();
     }
 
     pub fn select_table(&self) {}
@@ -134,6 +136,8 @@ impl Db {
 mod tests {
     use std::{fs::remove_file, path::Path};
 
+    use rusqlite::{types::Value, ToSql};
+
     #[test]
     fn create_db_file_from_path() {
         let path = "test.db";
@@ -145,5 +149,10 @@ mod tests {
         assert!(Path::new(path).exists());
 
         remove_file(path).expect("Failed to remove DB file");
+    }
+
+    #[test]
+    fn type_to_sql_type() {
+        assert_eq!(Value::Integer(10), Value::from(10));
     }
 }
