@@ -107,6 +107,7 @@ pub fn draw_ui(app: &App, frame: &mut Frame) {
 
             let rows = app
                 .db
+                .cursor
                 .records
                 .iter()
                 .map(|row| {

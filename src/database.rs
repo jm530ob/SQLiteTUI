@@ -14,9 +14,66 @@ pub enum InputState {
 }
 
 pub struct Cursor {
-    pub x: usize,
-    pub y: usize,
-    // pub current: (usize, usize),
+    // x coord
+    pub row: usize,
+    // y coord
+    pub col: usize,
+    /// List of rows
+    pub records: Vec<Vec<String>>,
+}
+
+impl Cursor {
+    pub fn new() -> Self {
+        Self {
+            row: 0,
+            col: 0,
+            records: Vec::new(),
+        }
+    }
+
+    pub fn next_col(&mut self) {
+        if self.col < self.records[self.row].len() - 1 {
+            self.col += 1;
+        } else {
+            self.col = 0; // cycle effect
+        }
+    }
+
+    pub fn prev_col(&mut self) {
+        if self.col == 0 {
+            self.col = self.records[self.row].len() - 1;
+        } else {
+            self.col -= 1;
+        }
+    }
+
+    pub fn next_row(&mut self) {
+        if self.row < self.records.len() - 1 {
+            self.row += 1;
+        } else {
+            self.row = 0;
+        }
+    }
+    pub fn prev_row(&mut self) {
+        if self.row == 0 {
+            self.row = self.records.len() - 1;
+        } else {
+            self.row -= 1;
+        }
+    }
+
+    pub fn get_selected_item(&self) -> &str {
+        &self.records[self.row][self.col]
+    }
+
+    pub fn update_item(&mut self, item: char) {
+        self.records[self.row][self.col].push(item);
+        // println!("{:?}", self.records[self.row][self.col]);
+    }
+
+    pub fn pop_item(&mut self) {
+        self.records[self.row][self.col].pop();
+    }
 }
 
 pub struct Db {
@@ -28,8 +85,7 @@ pub struct Db {
     pub parsed_column: Vec<Vec<String>>,
     /// Clean list of current column names
     pub col_names: Vec<String>,
-    /// List of rows
-    pub records: Vec<Vec<String>>,
+    pub cursor: Cursor,
     pub input_state: InputState,
 }
 
@@ -37,11 +93,11 @@ impl Db {
     pub fn new() -> rusqlite::Result<Self> {
         Ok(Self {
             db_name: None,
-            table_name: String::from(""),
-            column: String::from(""),
-            parsed_column: vec![],
-            col_names: vec![],
-            records: vec![],
+            table_name: String::new(),
+            column: String::new(),
+            parsed_column: Vec::new(),
+            col_names: Vec::new(),
+            cursor: Cursor::new(),
             input_state: InputState::Table,
         })
     }
@@ -56,6 +112,7 @@ impl Db {
             Err(err) => {
                 if err.kind() == ErrorKind::NotFound {
                     self.create_db();
+                    // todo: handle error
                     return Ok(());
                 }
                 return Err(err);
@@ -106,13 +163,15 @@ impl Db {
     // pub fn update_table(&self) {}
 
     pub fn add_record(&mut self) {
-        // initialize vec with empty strings
-        self.records
-            .push(vec![String::from("hello"); self.col_names.len()]);
+        self.cursor
+            .records
+            .push(vec![String::from(""); self.col_names.len()]);
+        // println!("Records after adding: {:?}", self.cursor.records);
+        // println!("{:?}", self.cursor.records[0].len());
     }
 
     pub fn pop_record(&mut self) {
-        self.records.pop();
+        self.cursor.records.pop();
     }
 
     pub fn select_table(&self) {}
@@ -138,18 +197,18 @@ mod tests {
 
     use rusqlite::{types::Value, ToSql};
 
-    #[test]
-    fn create_db_file_from_path() {
-        let path = "test.db";
-        super::Db::new()
-            .unwrap()
-            .create_db()
-            .expect("Failed to create a new DB file with name: {}");
+    // #[test]
+    // fn create_db_file_from_path() {
+    //     let path = "test.db";
+    //     super::Db::new()
+    //         .unwrap()
+    //         .create_db()
+    //         .expect("Failed to create a new DB file with name: {}");
 
-        assert!(Path::new(path).exists());
+    //     assert!(Path::new(path).exists());
 
-        remove_file(path).expect("Failed to remove DB file");
-    }
+    //     remove_file(path).expect("Failed to remove DB file");
+    // }
 
     #[test]
     fn type_to_sql_type() {

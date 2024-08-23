@@ -148,18 +148,26 @@ impl App {
             },
             Some(ViewState::Update) => match key_event {
                 KeyEvent {
-                    modifiers: KeyModifiers::CONTROL,
                     code: KeyCode::Char('n'),
+                    modifiers: KeyModifiers::CONTROL,
                     ..
                 } => {
                     self.db.pop_record();
                 }
                 KeyEvent {
-                    code: KeyCode::Char('n'),
+                    code,
+                    modifiers: KeyModifiers::NONE,
                     ..
-                } => {
-                    self.db.add_record();
-                }
+                } => match code {
+                    KeyCode::Char('n') => self.db.add_record(),
+                    KeyCode::Char(ch) => self.db.cursor.update_item(ch),
+                    KeyCode::Backspace => self.db.cursor.pop_item(),
+                    KeyCode::Up => self.db.cursor.prev_row(),
+                    KeyCode::Down => self.db.cursor.next_row(),
+                    KeyCode::Left => self.db.cursor.prev_col(),
+                    KeyCode::Right => self.db.cursor.next_col(),
+                    _ => {}
+                },
 
                 _ => {}
             },
