@@ -1,5 +1,5 @@
 // use std::io::Error;
-use std::vec;
+use std::{cmp, vec};
 
 use ratatui::{
     prelude::*,
@@ -8,8 +8,6 @@ use ratatui::{
         Block, Cell, Paragraph, Row, Table,
     },
 };
-use rusqlite::Params;
-use style::Styled;
 
 use crate::app::{App, AppState, ViewState};
 use crate::database::Db;
@@ -20,6 +18,10 @@ use popup::Popup;
 const BLUE: Color = Color::Rgb(129, 161, 193);
 const WIDGET_COLOR: Color = Color::Rgb(59, 66, 82);
 const BG_COLOR: Color = Color::Rgb(46, 52, 64);
+
+const VAR0: Color = Color::Rgb(46, 52, 64);
+const VAR1: Color = Color::Rgb(59, 66, 82);
+const VAR2: Color = Color::Rgb(76, 86, 106);
 
 fn info_log(frame: &mut Frame, app: &App) {
     let selected_db = Paragraph::new(format!(
@@ -90,6 +92,10 @@ pub fn draw_ui(app: &App, frame: &mut Frame) {
                 .constraints(vec![Constraint::Length(3), Constraint::Min(5)])
                 .split(frame.size());
 
+            // let centered = Rect::new(50, 0, 20, 20);
+
+            // println!("{:?} - {:?}", layout[1].width, frame.size().width);
+
             let header_style = Style::default().bg(WIDGET_COLOR);
             let header = app
                 .db
@@ -105,34 +111,71 @@ pub fn draw_ui(app: &App, frame: &mut Frame) {
                 .collect::<Row>()
                 .height(1); // apply to all
 
+            let color = |row, col| {
+                if row == app.db.cursor.row && col == app.db.cursor.col {
+                    VAR0
+                } else if row % 2 == 1 {
+                    VAR1
+                } else {
+                    VAR2
+                }
+            };
+
             let rows = app
                 .db
                 .cursor
                 .records
                 .iter()
-                .map(|row| {
+                .enumerate()
+                .map(|(i, row)| {
                     row.iter()
-                        .map(|item| Cell::from(item.as_str()))
+                        .enumerate()
+                        .map(|(j, item)| {
+                            Cell::from(
+                                Text::from(item.as_str()).style(Style::default().bg(color(i, j))),
+                            )
+                        })
                         .collect::<Row>() // convert each item into a row
                 })
                 .collect::<Vec<Row>>(); // and collect them into the vector
+
+            let get_max = |col_index: usize, col: &String| {
+                app.db
+                    .cursor
+                    .records
+                    .iter()
+                    .map(|row| cmp::max(col.len(), row[col_index].len()))
+                    .max()
+            };
+
+            // let mut width: usize = 0;
 
             let constraints = app
                 .db
                 .col_names
                 .iter()
-                .map(|col| Constraint::Length((col.len() + 2) as u16)) // +2 for padding
+                .enumerate()
+                .map(|(i, col)| {
+                    let longest_col = (get_max(i, col).unwrap_or(col.len()) + 2) as u16;
+                    Constraint::Length(longest_col)
+                    // +2 for padding
+                })
                 .collect::<Vec<Constraint>>();
 
-            let table = Table::new(rows, constraints).header(header);
+            // println!("{} {}", frame.size().width, app.db.table_width);
+            // let centered = Rect::new(
+            //     (frame.size().width - app.db.table_width / 2),
+            //     0,
+            //     app.db.table_width,
+            //     20,
+            // );
+            let block = Block::bordered().title(app.db.table_name.clone());
 
+            let table = Table::new(rows, constraints)
+                .block(block)
+                .column_spacing(1)
+                .header(header);
             frame.render_widget(table, layout[1]);
-            // let test_db = Db {
-            //     records: vec![Box::new("kokos".to_owned()), Box::new(false), Box::new(10)],
-            // };
-            // todo!("Layout for table");
-            // todo!("Add key handler for adding items in App");
-            // draw_items(frame, &test_db);
         }
 
         _ => {}
@@ -141,9 +184,8 @@ pub fn draw_ui(app: &App, frame: &mut Frame) {
     match app.app_state {
         Some(AppState::Receiving(ViewState::Create)) => {
             draw_app_input(frame, app);
-            // let popup = Popup::
-            // frame.render_widget(Clear, frame.size());
         }
+
         Some(AppState::Receiving(ViewState::Read)) => {}
         Some(AppState::Editing) => {}
         _ => {}
@@ -207,9 +249,6 @@ pub fn draw_items(frame: &mut Frame, db: &Db) {
         Constraint::Length(10),
     ];
     let table = Table::new(rows, widths);
-    // for record in db.records.iter() {
-    //     println!("sd");
-    // }
     frame.render_widget(table, frame.size());
 }
 
