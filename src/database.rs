@@ -77,10 +77,13 @@ impl Cursor {
 }
 
 pub struct Db {
+    pub conn: Option<Connection>,
     pub db_name: Option<String>,
     pub table_name: String,
     /// Raw input separated by comma
     pub column: String,
+    /// Temporary assigned value, usually used in Update state
+    pub col_name: String,
     /// Attributes, containing constraints and other meta data
     pub parsed_column: Vec<Vec<String>>,
     /// Clean list of current column names
@@ -92,14 +95,23 @@ pub struct Db {
 impl Db {
     pub fn new() -> rusqlite::Result<Self> {
         Ok(Self {
+            conn: None,
             db_name: None,
             table_name: String::new(),
             column: String::new(),
+            col_name: String::new(),
             parsed_column: Vec::new(),
             col_names: Vec::new(),
             cursor: Cursor::new(),
             input_state: InputState::Table,
         })
+    }
+
+    pub fn set_db(&mut self, name: String) {
+        self.db_name = Some(name);
+        self.conn = Some(
+            Connection::open(Self::ensure_correct_path(self.db_name.clone().unwrap())).unwrap(),
+        );
     }
 
     pub fn open_db_if_exists(&self) -> Result<(), io::Error> {
@@ -145,22 +157,41 @@ impl Db {
             .iter()
             .filter_map(|elm| elm.first().cloned())
             .collect();
-        let conn =
-            Connection::open(Self::ensure_correct_path(self.db_name.clone().unwrap())).unwrap();
         // println!("{}", self.col_names.join(","));
-        conn.execute(
-            &format!(
-                "create table {} ({})",
-                self.table_name,
-                self.col_names.join(",")
-            ),
-            (),
-        )
-        .unwrap();
+        if let Some(conn) = self.conn.as_ref() {
+            conn.execute(
+                &format!(
+                    "create table {} ({})",
+                    self.table_name,
+                    self.col_names.join(",")
+                ),
+                (),
+            )
+            .unwrap();
+            // todo: handle error
+        }
         Ok(())
     }
 
     // pub fn update_table(&self) {}
+    pub fn add_column(&mut self, val: String) {
+        if let Some(conn) = self.conn.as_ref() {
+            conn.execute(
+                &format!("alter table {} add column {}", self.table_name, val),
+                (),
+            )
+            .unwrap();
+            // todo: handle error
+        }
+        self.col_names
+            .push(val.split_whitespace().collect::<Vec<&str>>()[0].to_owned());
+
+        for row in self.cursor.records.iter_mut() {
+            row.push(String::from(""));
+        }
+    }
+
+    // fn fill_empty_col(&self) {}
 
     pub fn add_record(&mut self) {
         self.cursor

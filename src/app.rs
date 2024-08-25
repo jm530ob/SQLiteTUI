@@ -1,15 +1,16 @@
-use core::panic;
 use std::io;
 
-use crossterm::event::{
-    self, Event, KeyCode, KeyEvent, KeyEventKind, KeyModifiers, ModifierKeyCode,
-};
+use crossterm::event::{self, Event, KeyCode, KeyEvent, KeyEventKind, KeyModifiers};
 
 use crate::{
     database::{Db, InputState},
     tui, ui,
 };
 
+pub enum Mode {
+    Normal,
+    Insert,
+}
 pub enum AppState {
     Receiving(ViewState),
     Editing,
@@ -27,8 +28,10 @@ pub enum ViewState {
 pub struct App {
     pub current_view: Option<ViewState>,
     pub app_state: Option<AppState>,
+    pub mode: Mode,
     pub db: Db,
     pub display_dialog: bool,
+    pub display_append: bool,
     pub error_message: Option<io::Error>, // go-to dialog
     pub input: String,
 }
@@ -38,8 +41,10 @@ impl App {
         Self {
             current_view: Some(ViewState::Main),
             app_state: None,
+            mode: Mode::Normal,
             db: Db::new().expect("Could not create DB instance"),
             display_dialog: false,
+            display_append: false,
             error_message: None,
             input: String::new(),
         }
@@ -73,7 +78,7 @@ impl App {
             match key_event.code {
                 KeyCode::Char('c') => self.change_view(ViewState::Create),
                 KeyCode::Char('r') => self.change_view(ViewState::Read),
-                KeyCode::Char('u') => self.change_view(ViewState::Update),
+                // KeyCode::Char('u') => self.change_view(ViewState::Update),
                 KeyCode::Char('d') => self.change_view(ViewState::Delete),
                 KeyCode::Char('q') => self.change_view(ViewState::Exiting),
 
@@ -146,31 +151,75 @@ impl App {
                 }
                 _ => {}
             },
-            Some(ViewState::Update) => match key_event {
-                KeyEvent {
-                    code: KeyCode::Char('n'),
-                    modifiers: KeyModifiers::CONTROL,
-                    ..
-                } => {
-                    self.db.pop_record();
+            Some(ViewState::Update) => {
+                if self.display_append {
+                    match key_event.code {
+                        KeyCode::Char('c') => {
+                            self.db.add_column(self.db.col_name.clone());
+                            self.db.col_name.clear()
+                        }
+                        KeyCode::Char(ch) => {
+                            self.db.column.push(ch);
+                        }
+                        KeyCode::Backspace => {
+                            self.db.col_name.pop();
+                        }
+                        _ => {}
+                    }
                 }
-                KeyEvent {
-                    code,
-                    modifiers: KeyModifiers::NONE,
-                    ..
-                } => match code {
-                    KeyCode::Char('n') => self.db.add_record(),
-                    KeyCode::Char(ch) => self.db.cursor.update_item(ch),
-                    KeyCode::Backspace => self.db.cursor.pop_item(),
+                match key_event.code {
+                    KeyCode::Esc => {
+                        if matches!(self.mode, Mode::Insert) {
+                            self.mode = Mode::Normal;
+                        }
+                    }
+                    KeyCode::Char('i') => {
+                        if matches!(self.mode, Mode::Normal) {
+                            self.mode = Mode::Insert;
+                            return;
+                        }
+                    }
+
+                    KeyCode::Char('a') => {
+                        if matches!(self.mode, Mode::Normal) {
+                            self.display_append = true;
+                        }
+                    }
+
+                    _ => {}
+                }
+                match key_event.code {
                     KeyCode::Up => self.db.cursor.prev_row(),
                     KeyCode::Down => self.db.cursor.next_row(),
                     KeyCode::Left => self.db.cursor.prev_col(),
                     KeyCode::Right => self.db.cursor.next_col(),
                     _ => {}
-                },
+                }
+                if matches!(self.mode, Mode::Normal) {
+                    match key_event {
+                        KeyEvent {
+                            code: KeyCode::Char('n'),
+                            modifiers: KeyModifiers::NONE,
+                            ..
+                        } => self.db.add_record(),
+                        KeyEvent {
+                            code: KeyCode::Char('n'),
+                            modifiers: KeyModifiers::CONTROL,
+                            ..
+                        } => self.db.pop_record(),
 
-                _ => {}
-            },
+                        _ => {}
+                    }
+                }
+                if matches!(self.mode, Mode::Insert) {
+                    match key_event.code {
+                        KeyCode::Char('b') => self.db.add_column("test integer".to_owned()),
+                        KeyCode::Char(ch) => self.db.cursor.update_item(ch),
+                        KeyCode::Backspace => self.db.cursor.pop_item(),
+                        _ => {}
+                    }
+                }
+            }
             Some(ViewState::Delete) => match key_event.code {
                 _ => {}
             },
@@ -226,7 +275,7 @@ impl App {
         self.current_view = Some(view);
     }
 
-    pub fn change_app_state(&mut self) -> io::Result<()> {
+    fn change_app_state(&mut self) -> io::Result<()> {
         if self.current_view.is_none() {
             return Err(io::Error::new(
                 io::ErrorKind::Other,

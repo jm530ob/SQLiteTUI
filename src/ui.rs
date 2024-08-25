@@ -87,14 +87,15 @@ pub fn draw_ui(app: &App, frame: &mut Frame) {
         }
 
         Some(ViewState::Update) => {
+            // todo!("pridat - pridaj stlpec");
             let layout = Layout::default()
                 .direction(Direction::Vertical)
-                .constraints(vec![Constraint::Length(3), Constraint::Min(5)])
+                .constraints(vec![
+                    Constraint::Length(1),
+                    Constraint::Length(2),
+                    Constraint::Min(5),
+                ])
                 .split(frame.size());
-
-            // let centered = Rect::new(50, 0, 20, 20);
-
-            // println!("{:?} - {:?}", layout[1].width, frame.size().width);
 
             let header_style = Style::default().bg(WIDGET_COLOR);
             let header = app
@@ -175,7 +176,19 @@ pub fn draw_ui(app: &App, frame: &mut Frame) {
                 .block(block)
                 .column_spacing(1)
                 .header(header);
-            frame.render_widget(table, layout[1]);
+
+            let mode_text_style = Style::default().fg(BLUE).bold();
+
+            let mode_text = match app.mode {
+                crate::app::Mode::Normal => "--Normal--",
+                crate::app::Mode::Insert => "--Insert--",
+            };
+
+            frame.render_widget(
+                Paragraph::new(mode_text).style(mode_text_style).centered(),
+                layout[1],
+            );
+            frame.render_widget(table, layout[2]);
         }
 
         _ => {}
@@ -277,13 +290,13 @@ fn draw_goto_popup(frame: &mut Frame) {
         .content(Text::from(vec![
             Line::from("c - create new database"),
             Line::from("r - read/select database"),
-            Line::from("u - update database"),
+            // Line::from("u - update database"),
             Line::from("d - delete current database"),
             Line::from("q - exit"),
         ]))
         .style(Style::new().bg(WIDGET_COLOR))
         .w(30)
-        .h(7);
+        .h(6);
 
     frame.render_widget(main_dialog, frame.size());
 }
