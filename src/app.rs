@@ -11,6 +11,7 @@ pub enum Mode {
     Normal,
     Insert,
 }
+
 pub enum AppState {
     Receiving(ViewState),
     Editing,
@@ -153,6 +154,7 @@ impl App {
             },
             Some(ViewState::Update) => {
                 if self.display_append {
+                    // alter table component
                     match key_event.code {
                         KeyCode::Char('c') => {
                             self.db.add_column(self.db.col_name.clone());

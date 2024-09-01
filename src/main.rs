@@ -4,6 +4,7 @@ use app::App;
 use rusqlite::{params, Connection, Result};
 
 mod app;
+mod components;
 mod database;
 mod tui;
 mod ui;

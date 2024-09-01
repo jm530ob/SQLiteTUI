@@ -134,7 +134,6 @@ impl Db {
 
     pub fn create_db(&self) -> Result<(), io::Error> {
         let name = Self::ensure_correct_path(self.db_name.clone().unwrap_or("default".to_owned()));
-
         match File::create(name.trim()) {
             Ok(_) => return Ok(()),
             Err(err) => return Err(err),
@@ -173,7 +172,7 @@ impl Db {
         Ok(())
     }
 
-    // pub fn update_table(&self) {}
+    //pub fn update_table(&self) {}
     pub fn add_column(&mut self, val: String) {
         if let Some(conn) = self.conn.as_ref() {
             conn.execute(
