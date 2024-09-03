@@ -79,7 +79,6 @@ impl App {
             match key_event.code {
                 KeyCode::Char('c') => self.change_view(ViewState::Create),
                 KeyCode::Char('r') => self.change_view(ViewState::Read),
-                // KeyCode::Char('u') => self.change_view(ViewState::Update),
                 KeyCode::Char('d') => self.change_view(ViewState::Delete),
                 KeyCode::Char('q') => self.change_view(ViewState::Exiting),
 
@@ -154,7 +153,7 @@ impl App {
             },
             Some(ViewState::Update) => {
                 if self.display_append {
-                    // alter table component
+                    // modify table component
                     match key_event.code {
                         KeyCode::Char('c') => {
                             self.db.add_column(self.db.col_name.clone());
