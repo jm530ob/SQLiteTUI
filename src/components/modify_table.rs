@@ -58,14 +58,15 @@ impl super::Component for ModifyTableComponent {
                     .style(modify_style);
                 frame.render_widget(option_row, chunks[0]);
                 frame.render_widget(option_column, chunks[1]);
-            } else if let Some(Section::Column) = self.section {
-                frame.render_widget(Clear, frame.size());
             }
+            // } else if let Some(Section::Column) = self.section {
+            //     frame.render_widget(Clear, frame.size());
+            // }
         }
-        if self.is_visible && self.section.is_some() {
-            match self.section {
-                Section::Row => {}
-            }
+        if self.is_visible {
+            // match self.section {
+            //     Section::Row => {}
+            // }
         }
         Ok(())
     }

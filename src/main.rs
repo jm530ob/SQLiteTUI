@@ -8,6 +8,7 @@ mod components;
 mod database;
 mod tui;
 mod ui;
+mod utils;
 
 #[derive(Debug)]
 struct Person {
