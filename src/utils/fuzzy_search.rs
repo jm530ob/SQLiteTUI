@@ -27,7 +27,7 @@ impl Trie {
         let mut current_node = &mut self.root;
         for ch in word.chars() {
             if !current_node.children.contains_key(&ch) {
-                current_node.children.insert(ch, Node::new()).unwrap();
+                current_node.children.insert(ch, Node::new());
             }
             current_node = current_node.children.get_mut(&ch).unwrap();
         }
