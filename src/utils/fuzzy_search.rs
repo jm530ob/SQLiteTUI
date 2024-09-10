@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-#[derive(Clone)]
+#[derive(Clone, Default)]
 struct Node {
     children: HashMap<char, Node>,
     is_last: bool,
@@ -9,8 +9,7 @@ struct Node {
 impl Node {
     fn new() -> Self {
         Self {
-            children: HashMap::new(),
-            is_last: false,
+            ..Default::default()
         }
     }
 }
@@ -45,7 +44,8 @@ impl Trie {
         return current_node.is_last;
     }
 
-    pub fn get_match(&self, word: &str) -> Vec<&str> {
+    pub fn autocomplete(&mut self, prefix: &str) -> Vec<&str> {
+        let mut current_node = &mut self.root;
         vec!["jako"]
     }
 }

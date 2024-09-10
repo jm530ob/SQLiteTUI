@@ -10,6 +10,8 @@ mod tui;
 mod ui;
 mod utils;
 
+use utils::binary_search::binary_search;
+
 #[derive(Debug)]
 struct Person {
     id: i32,
@@ -27,6 +29,11 @@ impl StringExtensions for String {
 }
 
 fn main() -> io::Result<()> {
+    // let arr = [0; 8];
+    // let res = binary_search(arr, 6);
+    // if let Some(r) = res {
+    //     println!("{r}");
+    // }
     let mut terminal = tui::init()?;
     let mut app = App::new();
     app.run(&mut terminal)?;
