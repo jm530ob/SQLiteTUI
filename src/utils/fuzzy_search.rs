@@ -3,6 +3,7 @@ use std::collections::HashMap;
 #[derive(Clone, Default)]
 struct Node {
     children: HashMap<char, Node>,
+    value: Option<String>,
     is_last: bool,
 }
 
@@ -30,6 +31,7 @@ impl Trie {
             }
             current_node = current_node.children.get_mut(&ch).unwrap();
         }
+        current_node.value.replace(word.to_owned());
         current_node.is_last = true;
     }
 
@@ -46,12 +48,16 @@ impl Trie {
 
     pub fn autocomplete(&mut self, prefix: &str) -> Vec<&str> {
         let mut current_node = &mut self.root;
-        vec!["jako"]
+        //
+
+        vec!["test"]
     }
 }
 
 #[cfg(test)]
 mod tests {
+    use std::cmp::Ordering;
+
     use super::Trie;
     #[test]
     fn search_for_word() {
@@ -59,5 +65,19 @@ mod tests {
         t.insert("test");
         assert_eq!(t.search("te"), false);
         assert_eq!(t.search("test"), true);
+
+        // vec!["jako"].binary_search_by(|x| x.ke);
+        // let ok = |x| {
+        //     if ok(x) {
+        //         return Ordering::Greater;
+        //     }
+        //     Ordering::Less
+        // };
+        let test = vec!["ako"];
+        // test.pop()
+        // vec!["jkao"].cmp()
+        assert_eq!(1.cmp(&2), Ordering::Less);
+        let jako = vec!["jako"].binary_search(&"jako").unwrap();
+        assert_eq!(jako, 0);
     }
 }
