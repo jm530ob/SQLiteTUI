@@ -1,7 +1,7 @@
 pub fn binary_search(mut array: [u16; 8], target: u16) -> Option<String> {
     let mut start_index = 0;
     let mut end_index = array.len() - 1;
-
+    let mut ok = Box::new("KOKOS");
     for i in 1..=8 {
         array[i - 1] = i as u16;
     }

@@ -3,7 +3,7 @@ use std::collections::HashMap;
 #[derive(Clone, Default)]
 struct Node {
     children: HashMap<char, Node>,
-    value: Option<String>,
+    // value: Option<String>,
     is_last: bool,
 }
 
@@ -28,7 +28,7 @@ impl Trie {
         for ch in word.chars() {
             current_node = current_node.children.entry(ch).or_default();
         }
-        current_node.value.replace(word.to_owned());
+        // current_node.value.replace(word.to_owned());
         current_node.is_last = true;
     }
 
@@ -55,27 +55,22 @@ impl Trie {
         }
 
         let mut list: Vec<String> = Vec::new();
-        Self::traverse_tree(Some(&current_node), &mut list, prefix);
+        Self::traverse_tree(&current_node, &mut list, prefix);
 
         list
     }
 
-    fn traverse_tree(node: Option<&Node>, auto_comp_words: &mut Vec<String>, prefix: &str) {
-        if matches!(node, None) {
+    // Add doc
+    fn traverse_tree(node: &Node, auto_comp_words: &mut Vec<String>, prefix: &str) {
+        if node.children.is_empty() {
             return;
         }
-
-        match node {
-            Some(n) => {
-                if n.is_last {
-                    auto_comp_words.push(prefix.to_string());
-                }
-                let map = &n.children;
-                for (ch, _) in map {
-                    Self::traverse_tree(map.get(ch), auto_comp_words, &format!("{prefix}{ch}"));
-                }
-            }
-            _ => return,
+        if node.is_last {
+            auto_comp_words.push(prefix.to_string());
+        }
+        let map = &node.children;
+        for (ch, n) in map {
+            Self::traverse_tree(n, auto_comp_words, &format!("{prefix}{ch}"));
         }
     }
 }

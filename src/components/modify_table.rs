@@ -15,7 +15,8 @@ enum Section {
 
 pub struct ModifyTableComponent {
     section: Section,
-    text: String,
+    input: Vec<char>,
+    cursor_index: u16,
     is_visible: bool,
 }
 
@@ -23,21 +24,15 @@ impl ModifyTableComponent {
     fn new() -> Self {
         return Self {
             section: Section::Row,
-            text: String::new(),
+            input: vec![],
+            cursor_index: 0,
             is_visible: false,
-        };
-    }
-    fn toggle_section(&self) -> Section {
-        if let Section::Row = self.section {
-            return Section::Column;
-        } else {
-            return Section::Row;
         };
     }
 }
 
 impl super::Component for ModifyTableComponent {
-    fn draw(&self, frame: &mut Frame, app: &App) -> Result<(), Box<dyn std::error::Error>> {
+    fn draw(&self, frame: &mut Frame, _area: Rect, app: &App) {
         if self.is_visible {
             if self.is_visible {
                 let modify_style = Style::new().bg(Color::DarkGray);
@@ -59,29 +54,34 @@ impl super::Component for ModifyTableComponent {
                 frame.render_widget(option_row, chunks[0]);
                 frame.render_widget(option_column, chunks[1]);
             }
-            // } else if let Some(Section::Column) = self.section {
-            //     frame.render_widget(Clear, frame.size());
-            // }
         }
         if self.is_visible {
             // match self.section {
             //     Section::Row => {}
             // }
         }
-        Ok(())
     }
 
     fn event(&mut self, key: KeyEvent) {
-        // if key.modifiers.contains(KeyModifiers::CONTROL) {
         match key.code {
             KeyCode::Char('n') => {
                 self.is_visible = true;
             }
             KeyCode::Char(ch) => {
                 if matches!(self.section, Section::Column) {
-                    self.text.push(ch);
+                    self.input.insert(self.cursor_index as usize, ch);
+                    self.cursor_index += 1;
                 }
             }
+
+            KeyCode::Delete | KeyCode::Backspace => {
+                if matches!(self.section, Section::Column) {
+                    if self.cursor_index > 0 && !self.input.is_empty() {
+                        self.input.remove(self.cursor_index as usize);
+                    }
+                }
+            }
+
             KeyCode::Esc => {}
             KeyCode::Enter => {}
             _ => {}
