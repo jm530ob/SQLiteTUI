@@ -6,6 +6,8 @@ use ratatui::{
     Frame,
 };
 
+type KeyState = super::KeyState;
+
 use crate::app::App;
 
 enum Section {
@@ -35,38 +37,45 @@ impl super::Component for ModifyTableComponent {
     fn draw(&self, frame: &mut Frame, _area: Rect, app: &App) {
         if self.is_visible {
             if self.is_visible {
-                let modify_style = Style::new().bg(Color::DarkGray);
+                let normal_style = Style::new().bg(Color::DarkGray);
+                let selected_style = Style::new().bg(Color::Blue);
                 let w = frame.size().width;
                 let h = frame.size().height;
                 let centered =
                     Rect::new(w.saturating_sub(100) / 2, h.saturating_sub(30) / 2, 100, 30);
                 let chunks = Layout::default()
                     .direction(Direction::Horizontal)
-                    .constraints(vec![Constraint::Percentage(50), Constraint::Percentage(50)])
+                    .constraints(vec![Constraint::Percentage(30), Constraint::Min(1)])
                     .split(centered);
 
-                let option_row = Paragraph::new("Row")
-                    .block(Block::bordered())
-                    .style(modify_style);
-                let option_column = Paragraph::new("Column")
-                    .block(Block::bordered())
-                    .style(modify_style);
-                frame.render_widget(option_row, chunks[0]);
-                frame.render_widget(option_column, chunks[1]);
+                let create_option = |title: &'static str,
+                                     is_selected: bool|
+                 -> Paragraph<'static> {
+                    let p = Paragraph::new(title)
+                        .block(Block::bordered())
+                        .style(if is_selected {
+                            selected_style
+                        } else {
+                            normal_style
+                        });
+                    p
+                };
+
+                let row = create_option("Row", matches!(self.section, Section::Row));
+                let column = create_option("Column", matches!(self.section, Section::Column));
+
+                frame.render_widget(row, chunks[0]);
+                frame.render_widget(column, chunks[1]);
             }
-        }
-        if self.is_visible {
-            // match self.section {
-            //     Section::Row => {}
-            // }
         }
     }
 
-    fn event(&mut self, key: KeyEvent) {
+    fn event(&mut self, key: KeyEvent) -> KeyState {
         match key.code {
             KeyCode::Char('n') => {
-                self.is_visible = true;
+                self.show();
             }
+
             KeyCode::Char(ch) => {
                 if matches!(self.section, Section::Column) {
                     self.input.insert(self.cursor_index as usize, ch);
@@ -81,11 +90,15 @@ impl super::Component for ModifyTableComponent {
                     }
                 }
             }
+            // todo: posun kurzora a sekcii
+            KeyCode::Esc => {
+                self.hide();
+            }
 
-            KeyCode::Esc => {}
             KeyCode::Enter => {}
-            _ => {}
+            _ => return KeyState::NotConsumed,
         }
+        KeyState::Consumed
     }
 
     fn hide(&mut self) {
