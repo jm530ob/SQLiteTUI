@@ -2,14 +2,18 @@ use std::{error::Error, io};
 
 use crossterm::event::{self, Event, KeyCode, KeyEvent, KeyEventKind, KeyModifiers};
 use ratatui::{
-    layout::{Direction, Layout},
+    layout::{Constraint, Direction, Layout},
+    style::{Color, Style},
+    widgets::Block,
     Frame,
 };
 
 use crate::{
-    components::KeyState,
-    database::{Db, InputState},
-    tui, ui,
+    components::{modify_table::ModifyTableComponent, tree::TreeComponent, Component, KeyState},
+    models,
+    //  database::{Db, InputState},
+    tui,
+    // ui,
 };
 
 pub enum Mode {
@@ -33,9 +37,11 @@ pub enum ViewState {
 
 pub struct App {
     pub current_view: Option<ViewState>,
+    pub tree_component: TreeComponent,
+    pub modify_table_component: ModifyTableComponent,
     //    pub app_state: Option<AppState>,
     // pub mode: Mode,
-    pub db: Db,
+    // pub db: Db,
     //  pub display_dialog: bool,
     //    pub display_append: bool,
     //    pub error_message: Option<io::Error>, // go-to dialog
@@ -46,25 +52,36 @@ impl App {
     pub fn new() -> Self {
         Self {
             current_view: Some(ViewState::Main),
+            tree_component: TreeComponent::new(),
+            modify_table_component: ModifyTableComponent::new(),
             // app_state: None,
             // mode: Mode::Normal,
-            db: Db::new().expect("Could not create DB instance"),
+            // db: Db::new().expect("Could not create DB instance"),
             // display_dialog: false,
             // display_append: false,
             // error_message: None,
-            // input: String::new(),
+            // input: String::new(),k
         }
     }
 
     pub fn run(&mut self, terminal: &mut tui::Tui) -> io::Result<()> {
-        loop {
+        let get_key_event = || {
             if let Ok(event) = event::read() {
-                self.handle_event(event);
-            }
-            terminal.draw(|frame| {
-                if let Ok(_) = self.draw(frame) {
-                    todo!()
+                match event {
+                    Event::Key(key_event) if key_event.kind == KeyEventKind::Press => {
+                        Some(key_event)
+                    }
+                    _ => None,
                 }
+            } else {
+                None
+            }
+        };
+
+        loop {
+            terminal.draw(|frame| {
+                self.draw(frame, get_key_event())
+                    .inspect_err(|e| eprintln!("{e}"));
             });
 
             if let Some(ViewState::Exiting) = self.current_view {
@@ -74,21 +91,28 @@ impl App {
         Ok(())
     }
 
-    fn handle_event(&mut self, event: Event) {
-        match event {
-            Event::Key(key_event) if key_event.kind == KeyEventKind::Press => {
-                self.handle_key_event(key_event);
-            }
-            _ => {}
-        }
+    pub fn setup(&mut self, args: models::args::Args) {
+        self.tree_component.setup(&args);
+        // self.modify_table_component.setup(&args);
     }
 
-    fn handle_key_event(&mut self, key_event: KeyEvent) -> Result<(), Box<dyn std::error::Error>> {
-        let chunks = Layout::default().direction(Direction::Horizontal);
-        Ok(())
-    }
+    fn draw(
+        &mut self,
+        f: &mut Frame,
+        key_event: Option<KeyEvent>,
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        let chunks = Layout::default()
+            .direction(Direction::Horizontal)
+            .constraints(vec![Constraint::Length(20), Constraint::Min(1)])
+            .split(f.size());
 
-    fn draw(&mut self, f: &mut Frame) -> Result<(), Box<dyn std::error::Error>> {
+        let tree_node = chunks[0];
+        let test_bg = Block::default().style(Style::default().bg(Color::Gray));
+        //f.render_widget(test_bg, tree_node);
+        println!("TEEEEST");
+        tui::clear()?;
+        //tree_node.s
+
         Ok(())
     }
     // for item

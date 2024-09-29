@@ -8,7 +8,7 @@ use ratatui::{
 
 type KeyState = super::KeyState;
 
-use crate::app::App;
+use crate::{app::App, models};
 
 enum Section {
     Row,
@@ -23,7 +23,7 @@ pub struct ModifyTableComponent {
 }
 
 impl ModifyTableComponent {
-    fn new() -> Self {
+    pub fn new() -> Self {
         return Self {
             section: Section::Row,
             input: vec![],
@@ -70,8 +70,8 @@ impl super::Component for ModifyTableComponent {
         }
     }
 
-    fn event(&mut self, key: KeyEvent) -> KeyState {
-        match key.code {
+    fn event(&mut self, key: Option<KeyEvent>) -> KeyState {
+        match key.unwrap().code {
             KeyCode::Char('n') => {
                 self.show();
             }
@@ -111,5 +111,9 @@ impl super::Component for ModifyTableComponent {
         if !self.is_visible {
             self.is_visible = true;
         }
+    }
+
+    fn setup(&mut self, _args: &models::args::Args) -> Result<(), Box<dyn std::error::Error>> {
+        todo!()
     }
 }

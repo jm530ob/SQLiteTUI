@@ -1,48 +1,28 @@
 use std::io;
 
 use app::App;
+use clap::{Args, Parser};
 use rusqlite::{params, Connection, Result};
 
 mod app;
 mod components;
-mod database;
+// mod database;
 mod tui;
-mod ui;
+// mod ui;
+mod models;
 mod utils;
 
-use utils::binary_search::binary_search;
-
-#[derive(Debug)]
-struct Person {
-    id: i32,
-    name: String,
-    data: Option<Vec<u8>>,
-}
-trait StringExtensions {
-    fn uwu();
-}
-
-impl StringExtensions for String {
-    fn uwu() {
-        println!("UWU");
-    }
-}
-
 fn main() -> io::Result<()> {
-    // let arr = [0; 8];
-    // let res = binary_search(arr, 6);
-    // if let Some(r) = res {
-    //     println!("{r}");
-    // }
+    let args = models::args::Args::parse();
     let mut terminal = tui::init()?;
     let mut app = App::new();
+    app.setup(args);
     app.run(&mut terminal)?;
     tui::clear()?;
     // let mut test = database::Db {
     //     records: vec![Box::new(20)],
     // };
     // test.add_record();
-    String::uwu();
 
     // let conn = Connection::open_in_memory()?;
 

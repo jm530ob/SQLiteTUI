@@ -2,9 +2,10 @@ use crossterm::event::KeyEvent;
 use ratatui::{layout::Rect, Frame};
 use std::error::Error;
 
-use crate::app::App;
+use crate::{app::App, models};
 
-mod modify_table;
+pub mod modify_table;
+pub mod tree;
 
 pub enum KeyState {
     Consumed,
@@ -13,7 +14,8 @@ pub enum KeyState {
 
 pub trait Component {
     fn draw(&self, frame: &mut Frame, area: Rect, app: &App);
-    fn event(&mut self, key: KeyEvent) -> KeyState;
+    fn event(&mut self, key: Option<KeyEvent>) -> KeyState;
+    fn setup(&mut self, args: &models::args::Args) -> Result<(), Box<dyn std::error::Error>>;
     fn hide(&mut self);
     fn show(&mut self);
 }
