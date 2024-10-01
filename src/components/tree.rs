@@ -32,11 +32,10 @@ impl super::Component for TreeComponent {
 
     fn setup(&mut self, args: &models::args::Args) -> Result<(), Box<dyn std::error::Error>> {
         for path in &args.paths {
-            todo!("z nejakeho dovodu nefunguje vector argumentov ako by mal");
             let path = Path::new(path);
             if path.ends_with(".db") {
                 self.abs_paths.push(path.canonicalize()?);
-                println!("{:?}", path);
+                // println!("{:?}", path);
             } else {
                 return Err(Box::new(Error::new(
                     std::io::ErrorKind::NotFound,
@@ -71,8 +70,11 @@ mod tests {
         // let mut tree = super::TreeComponent {
         //     databases: HashMap::new(),
         // };
-        let path = Path::new("../../test.txt");
-        println!("{:?}", path.canonicalize().unwrap());
+
+        let path = Path::new("test.db");
+        if path.ends_with(".db") {
+            //assert_eq!(path.canonicalize()?)
+        }
         assert!(path.canonicalize().unwrap().try_exists().unwrap());
         // println!("{:?}", path.canonicalize().unwrap()); // -- --nocapture
     }
