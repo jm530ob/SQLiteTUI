@@ -4,18 +4,20 @@ use std::{
     path::{Path, PathBuf},
 };
 
-use crate::models;
+use crate::{models, utils::scroll_state::ScrollState};
 
 pub struct TreeComponent {
     // Database: tables
     pub abs_paths: Vec<PathBuf>,
     pub databases: HashMap<String, Vec<String>>,
+    pub scroll_state: ScrollState,
 }
 impl TreeComponent {
     pub fn new() -> Self {
         Self {
             abs_paths: vec![],
             databases: HashMap::new(),
+            scroll_state: ScrollState::new(),
         }
     }
 }
@@ -48,7 +50,7 @@ impl super::Component for TreeComponent {
     }
 
     fn event(&mut self, key: Option<crossterm::event::KeyEvent>) -> super::KeyState {
-        todo!()
+        self.scroll_state.scroll();
     }
 
     fn hide(&mut self) {

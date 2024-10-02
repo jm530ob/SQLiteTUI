@@ -1,6 +1,6 @@
-use std::{error::Error, io};
+use std::{error::Error, io, time::Duration};
 
-use crossterm::event::{self, Event, KeyCode, KeyEvent, KeyEventKind, KeyModifiers};
+use crossterm::event::{self, poll, Event, KeyCode, KeyEvent, KeyEventKind, KeyModifiers};
 use ratatui::{
     layout::{Constraint, Direction, Layout},
     style::{Color, Style},
@@ -65,7 +65,21 @@ impl App {
     }
 
     pub fn run(&mut self, terminal: &mut tui::Tui) -> io::Result<()> {
-        let get_key_event = || {
+        loop {
+            terminal.draw(|frame| {
+                self.draw(frame, self.is_event())
+                    .inspect_err(|e| eprintln!("{e}"));
+            });
+
+            if let Some(ViewState::Exiting) = self.current_view {
+                break;
+            }
+        }
+        Ok(())
+    }
+
+    fn is_event(&self) -> Option<KeyEvent> {
+        if let Ok(true) = poll(Duration::from_millis(0)) {
             if let Ok(event) = event::read() {
                 match event {
                     Event::Key(key_event) if key_event.kind == KeyEventKind::Press => {
@@ -76,19 +90,9 @@ impl App {
             } else {
                 None
             }
-        };
-
-        loop {
-            terminal.draw(|frame| {
-                self.draw(frame, get_key_event())
-                    .inspect_err(|e| eprintln!("{e}"));
-            });
-
-            if let Some(ViewState::Exiting) = self.current_view {
-                break;
-            }
+        } else {
+            None
         }
-        Ok(())
     }
 
     pub fn setup(&mut self, args: models::args::Args) {

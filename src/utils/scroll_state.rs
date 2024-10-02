@@ -1,6 +1,7 @@
 use crossterm::event::KeyCode;
 use ratatui::widgets::ScrollbarState;
 
+#[derive(Default)]
 pub struct ScrollState {
     pub vertical_scroll_state: ScrollbarState,
     pub horizontal_scroll_state: ScrollbarState,
@@ -9,6 +10,12 @@ pub struct ScrollState {
 }
 
 impl ScrollState {
+    pub fn new() -> Self {
+        Self {
+            ..Default::default()
+        }
+    }
+
     pub fn scroll(&mut self, key_code: KeyCode) {
         match key_code {
             KeyCode::Up | KeyCode::Char('k') => {
