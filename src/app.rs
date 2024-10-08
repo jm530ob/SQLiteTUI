@@ -79,20 +79,16 @@ impl App {
     }
 
     fn is_event(&self) -> Option<KeyEvent> {
-        if let Ok(true) = poll(Duration::from_millis(0)) {
-            if let Ok(event) = event::read() {
-                match event {
-                    Event::Key(key_event) if key_event.kind == KeyEventKind::Press => {
-                        Some(key_event)
-                    }
-                    _ => None,
+        if poll(Duration::from_millis(0)).ok()? {
+            // returns Some(KeyEvent) -> KeyEvent
+            match event::read().ok()? {
+                Event::Key(key_event) if key_event.kind == KeyEventKind::Press => {
+                    return Some(key_event);
                 }
-            } else {
-                None
+                _ => {}
             }
-        } else {
-            None
         }
+        None
     }
 
     pub fn setup(&mut self, args: models::args::Args) {
@@ -107,14 +103,16 @@ impl App {
     ) -> Result<(), Box<dyn std::error::Error>> {
         let chunks = Layout::default()
             .direction(Direction::Horizontal)
-            .constraints(vec![Constraint::Length(20), Constraint::Min(1)])
+            .constraints(vec![Constraint::Length(30), Constraint::Min(1)])
             .split(f.size());
 
-        let tree_node = chunks[0];
-        let test_bg = Block::default().style(Style::default().bg(Color::Gray));
-        //f.render_widget(test_bg, tree_node);
-        println!("TEEEEST");
-        tui::clear()?;
+        let mut tree_node_area = chunks[0];
+        self.tree_component.draw(f, &mut tree_node_area, self);
+        if let Some(ke) = key_event {
+            self.tree_component.event(ke);
+        }
+        //println!("OKI DOKI");
+        //tui::clear()?;
         //tree_node.s
 
         Ok(())

@@ -4,7 +4,17 @@ use std::{
     path::{Path, PathBuf},
 };
 
+use crossterm::event::KeyEvent;
+use ratatui::{
+    layout::Margin,
+    style::{Color, Style},
+    text::Line,
+    widgets::{Block, Borders, Paragraph, Scrollbar, ScrollbarOrientation, ScrollbarState},
+};
+
 use crate::{models, utils::scroll_state::ScrollState};
+
+use super::KeyState;
 
 pub struct TreeComponent {
     // Database: tables
@@ -23,14 +33,6 @@ impl TreeComponent {
 }
 impl super::Component for TreeComponent {
     // observer
-    fn draw(
-        &self,
-        frame: &mut ratatui::prelude::Frame,
-        area: ratatui::prelude::Rect,
-        app: &crate::app::App,
-    ) {
-        todo!()
-    }
 
     fn setup(&mut self, args: &models::args::Args) -> Result<(), Box<dyn std::error::Error>> {
         for path in &args.paths {
@@ -49,8 +51,30 @@ impl super::Component for TreeComponent {
         // retrieve .db files
     }
 
-    fn event(&mut self, key: Option<crossterm::event::KeyEvent>) -> super::KeyState {
-        self.scroll_state.scroll();
+    fn draw(
+        &self,
+        frame: &mut ratatui::prelude::Frame,
+        area: &mut ratatui::prelude::Rect,
+        app: &crate::app::App,
+    ) {
+        let items = vec![
+            Line::from("Item 1"),
+            Line::from("Item 2"),
+            Line::from("Item 3"),
+        ];
+
+        let paragraph = Paragraph::new(items.clone())
+            .scroll((
+                self.scroll_state.vertical_scroll as u16,
+                self.scroll_state.horizontal_scroll as u16,
+            ))
+            .block(Block::new().borders(Borders::RIGHT)); // to show a background for the scrollbar
+        frame.render_widget(paragraph, *area);
+    }
+
+    fn event(&mut self, key_event: KeyEvent) -> super::KeyState {
+        self.scroll_state.scroll(key_event);
+        KeyState::NotConsumed
     }
 
     fn hide(&mut self) {

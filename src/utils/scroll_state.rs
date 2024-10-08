@@ -1,4 +1,4 @@
-use crossterm::event::KeyCode;
+use crossterm::event::{KeyCode, KeyEvent};
 use ratatui::widgets::ScrollbarState;
 
 #[derive(Default)]
@@ -16,8 +16,8 @@ impl ScrollState {
         }
     }
 
-    pub fn scroll(&mut self, key_code: KeyCode) {
-        match key_code {
+    pub fn scroll(&mut self, key_event: KeyEvent) {
+        match key_event.code {
             KeyCode::Up | KeyCode::Char('k') => {
                 self.vertical_scroll = self.vertical_scroll.saturating_add(1);
                 self.vertical_scroll_state =

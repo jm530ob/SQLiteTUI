@@ -34,7 +34,7 @@ impl ModifyTableComponent {
 }
 
 impl super::Component for ModifyTableComponent {
-    fn draw(&self, frame: &mut Frame, _area: Rect, app: &App) {
+    fn draw(&self, frame: &mut Frame, _area: &mut Rect, app: &App) {
         if self.is_visible {
             if self.is_visible {
                 let normal_style = Style::new().bg(Color::DarkGray);
@@ -70,8 +70,8 @@ impl super::Component for ModifyTableComponent {
         }
     }
 
-    fn event(&mut self, key: Option<KeyEvent>) -> KeyState {
-        match key.unwrap().code {
+    fn event(&mut self, key: KeyEvent) -> KeyState {
+        match key.code {
             KeyCode::Char('n') => {
                 self.show();
             }
