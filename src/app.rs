@@ -21,11 +21,6 @@ pub enum Mode {
     Insert,
 }
 
-// pub enum AppState {
-//     Receiving(ViewState),
-//     Editing,
-// }
-
 pub enum ViewState {
     Main,
     Create,
@@ -39,13 +34,6 @@ pub struct App {
     pub current_view: Option<ViewState>,
     pub tree_component: TreeComponent,
     pub modify_table_component: ModifyTableComponent,
-    //    pub app_state: Option<AppState>,
-    // pub mode: Mode,
-    // pub db: Db,
-    //  pub display_dialog: bool,
-    //    pub display_append: bool,
-    //    pub error_message: Option<io::Error>, // go-to dialog
-    //    pub input: String,
 }
 
 impl App {
@@ -67,8 +55,7 @@ impl App {
     pub fn run(&mut self, terminal: &mut tui::Tui) -> io::Result<()> {
         loop {
             terminal.draw(|frame| {
-                self.draw(frame, self.is_event())
-                    .inspect_err(|e| eprintln!("{e}"));
+                self.draw(frame, self.is_event());
             });
 
             if let Some(ViewState::Exiting) = self.current_view {
@@ -101,6 +88,7 @@ impl App {
         f: &mut Frame,
         key_event: Option<KeyEvent>,
     ) -> Result<(), Box<dyn std::error::Error>> {
+
         let chunks = Layout::default()
             .direction(Direction::Horizontal)
             .constraints(vec![Constraint::Length(30), Constraint::Min(1)])
@@ -108,36 +96,24 @@ impl App {
 
         let mut tree_node_area = chunks[0];
         self.tree_component.draw(f, &mut tree_node_area, self);
-        if let Some(ke) = key_event {
-            self.tree_component.event(ke);
+        if let Some(key_event) = key_event {
+            if matches!(self.tree_component.handle_event(key_event), KeyState::Consumed) {
+                return Ok(());
+            }
         }
-        //println!("OKI DOKI");
-        //tui::clear()?;
-        //tree_node.s
+
+        if key_event.is_some() {
+            match key_event.unwrap().code {
+                KeyCode::Esc => {
+                    self.current_view = Some(ViewState::Exiting);
+                    return Ok(());
+                },
+                _ => {}
+            }
+        }
 
         Ok(())
     }
-    // for item
-    //  fn change_view(&mut self, view: ViewState) {
-    //      self.current_view = Some(view);
-    //  }
-
-    //  fn change_app_state(&mut self) -> io::Result<()> {
-    //      if self.current_view.is_none() {
-    //          return Err(io::Error::new(
-    //              io::ErrorKind::Other,
-    //              "state has to be initialized at this point",
-    //          ));
-    //      }
-
-    //      match self.current_view.as_ref().unwrap() {
-    //          ViewState::Create => self.app_state = Some(AppState::Receiving(ViewState::Create)),
-    //          ViewState::Read => self.app_state = Some(AppState::Receiving(ViewState::Read)),
-    //          _ => {}
-    //      }
-    //      Ok(())
-    //  }
-
     fn exit(&mut self) {
         //
         self.current_view = None;

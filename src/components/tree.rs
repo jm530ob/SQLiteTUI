@@ -4,7 +4,7 @@ use std::{
     path::{Path, PathBuf},
 };
 
-use crossterm::event::KeyEvent;
+use crossterm::event::{KeyCode, KeyEvent};
 use ratatui::{
     layout::Margin,
     style::{Color, Style},
@@ -12,7 +12,7 @@ use ratatui::{
     widgets::{Block, Borders, Paragraph, Scrollbar, ScrollbarOrientation, ScrollbarState},
 };
 
-use crate::{models, utils::scroll_state::ScrollState};
+use crate::{models, tui, utils::scroll_state::ScrollState};
 
 use super::KeyState;
 
@@ -72,8 +72,14 @@ impl super::Component for TreeComponent {
         frame.render_widget(paragraph, *area);
     }
 
-    fn event(&mut self, key_event: KeyEvent) -> super::KeyState {
-        self.scroll_state.scroll(key_event);
+    fn handle_event(&mut self, key_event: KeyEvent) -> super::KeyState {
+        if matches!(self.scroll_state.scroll(key_event), KeyState::Consumed) {
+            return KeyState::Consumed;
+        };
+
+        //if matches!(key_event.code, KeyCode::Esc) {
+            // tui::clear().expect("msg");
+        //}
         KeyState::NotConsumed
     }
 

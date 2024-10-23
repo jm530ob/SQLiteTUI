@@ -70,7 +70,7 @@ impl super::Component for ModifyTableComponent {
         }
     }
 
-    fn event(&mut self, key: KeyEvent) -> KeyState {
+    fn handle_event(&mut self, key: KeyEvent) -> KeyState {
         match key.code {
             KeyCode::Char('n') => {
                 self.show();
