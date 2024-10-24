@@ -12,3 +12,4 @@ rusqlite = { version = "0.32.0", features = ["bundled"] }
 tokio = {version = "1.39.2", features = ["full"] }
 tui-popup = "0.4.5"
 clap = { version = "4.5.18", features = ["derive"] }
+regex = "1.11.0"
