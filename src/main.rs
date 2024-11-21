@@ -11,6 +11,7 @@ mod tui;
 // mod ui;
 mod models;
 mod utils;
+mod database;
 
 fn main() -> io::Result<()> {
     let args = models::args::Args::parse();

@@ -7,6 +7,7 @@ use ratatui::{
     widgets::Block,
     Frame,
 };
+use crate::database;
 
 use crate::{
     components::{modify_table::ModifyTableComponent, tree::TreeComponent, Component, KeyState},
@@ -106,14 +107,7 @@ impl App {
                 } => {
                     self.active = Area::TreeComponent;
                 }
-                KeyEvent {
-                    code: KeyCode::Char('n'),
-                    modifiers: KeyModifiers::CONTROL,
-                    ..
-                } => {
-                    self.modify_table_component.show();
-                    self.active = Area::ModifyTableComponent;
-                }
+
                 _ => {}
             }
             if matches!(

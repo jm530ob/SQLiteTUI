@@ -125,6 +125,7 @@ impl super::Component for TreeComponent {
                 } else {
                     self.count = 0;
                 }
+                KeyState::Consumed
             }
             KeyCode::Char('k') => {
                 if self.count != 0 {
@@ -132,8 +133,14 @@ impl super::Component for TreeComponent {
                 } else {
                     self.count = self.paths_total - 1;
                 }
+                KeyState::Consumed
             }
-            _ => {}
+            KeyCode::Enter => {
+
+
+                KeyState::Consumed
+            }
+            _ => { KeyState::NotConsumed}
         }
 
         KeyState::NotConsumed

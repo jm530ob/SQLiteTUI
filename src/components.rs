@@ -6,6 +6,7 @@ use crate::{app::App, app::Area, models};
 
 pub mod modify_table;
 pub mod tree;
+mod select_table;
 
 pub enum KeyState {
     Consumed,
