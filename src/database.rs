@@ -1,17 +1,46 @@
 use rusqlite::{params, Connection, Result};
+
+//#[derive(Clone, Copy)]
 pub struct Database {
-    conn: Connection,
-
+    pub conn: Connection,
+    pub table: Option<String>,
 }
-impl Database {
 
-    pub fn new(&mut self, path: &str) -> Result<Self> {
+impl Database {
+    pub fn new(path: &str) -> Result<Self> {
         let conn = Connection::open(path)?;
-        Ok(Self {conn})
+        Ok(Self { conn, table: None })
     }
-    pub fn select_table(&self, table: &str) -> Result<()> {
-        let stmt = self.conn.prepare("SELECT * FROM {table}")?;
-        Ok(())
+
+    pub fn list_tables(&self, conn: &Connection) -> Result<Vec<String>> {
+        let mut stmt = conn.prepare("select name from sqlite_master where type='table'")?;
+
+        let rows = stmt.query_map([], |row| row.get(0))?;
+
+        let mut tables = vec![];
+        for row in rows {
+            tables.push(row?);
+        }
+
+        Ok(tables)
+    }
+
+    pub fn get_query(&self, conn: &Connection, table: &str) -> Result<Vec<String>> {
+        let mut stmt = conn.prepare(&format!("select * from {}", table))?;
+        let rows = stmt.query_map([], |row| row.get(0))?;
+
+        let mut data = vec![];
+        for row in rows {
+            data.push(row?);
+        }
+
+        Ok(data)
+    }
+
+    pub fn column_names(&self, conn: &Connection, table: &str) -> Result<(i16, Vec<String>)> {
+        let mut stmt = conn.prepare(&format!("select * from {}", table))?;
+        stmt.column_names().iter()
+        Ok()
     }
 }
 

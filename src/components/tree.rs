@@ -5,6 +5,7 @@ use std::{
     i16,
     io::Error,
     path::{Path, PathBuf},
+    usize,
 };
 
 use crossterm::event::{KeyCode, KeyEvent, KeyModifiers, MediaKeyCode, ModifierKeyCode};
@@ -17,6 +18,7 @@ use ratatui::{
 
 use crate::{
     app::{App, Area},
+    database::Database,
     models, tui,
     utils::scroll_state::ScrollState,
 };
@@ -61,15 +63,9 @@ impl super::Component for TreeComponent {
             self.paths_total += 1;
         }
         Ok(())
-        /* else {
-                return Err(Box::new(Error::new(
-                    std::io::ErrorKind::NotFound,
-                    "Path has to be a database!",
-                )));
-            }
-        */
-        // retrieve .db files
     }
+
+    fn update(&mut self, _db: &Database) {}
 
     fn draw(
         &self,
@@ -80,7 +76,6 @@ impl super::Component for TreeComponent {
         if !self.visible {
             return;
         }
-
         let mut count: i16 = -1;
 
         let items = &self
@@ -89,10 +84,15 @@ impl super::Component for TreeComponent {
             .map(|path| {
                 count += 1;
                 if count == self.count as i16 {
-                    Line::from(self.to_relative_path(path.to_str().unwrap()))
-                        .style(Style::new().bg(Color::Rgb(55, 53, 63)))
+                    Line::from(self.to_relative_path(path.to_str().unwrap())).style(
+                        Style::new()
+                            .bg(Color::Rgb(42, 39, 42))
+                            .fg(Color::Rgb(186, 187, 192))
+                            .bold(),
+                    )
                 } else {
                     Line::from(self.to_relative_path(path.to_str().unwrap()))
+                        .style(Style::new().fg(Color::Rgb(186, 187, 192)))
                 }
             })
             .collect::<Vec<Line>>();
@@ -102,11 +102,20 @@ impl super::Component for TreeComponent {
                 self.scroll_state.vertical_scroll as u16,
                 self.scroll_state.horizontal_scroll as u16,
             ))
-            .block(Block::new().borders(Borders::RIGHT)); // to show a background for the scrollbar
+            .block(
+                Block::new()
+                    .borders(Borders::RIGHT)
+                    .border_style(Style::new().fg(Color::Rgb(68, 68, 68))),
+            );
         frame.render_widget(paragraph, *area);
     }
 
-    fn handle_event(&mut self, key_event: KeyEvent, active: &Area) -> super::KeyState {
+    fn handle_event(
+        &mut self,
+        key_event: KeyEvent,
+        active: &mut Area,
+        db: &mut Option<Database>,
+    ) -> super::KeyState {
         if !self.visible {
             return KeyState::NotConsumed;
         }
@@ -114,39 +123,60 @@ impl super::Component for TreeComponent {
         if !matches!(active, Area::TreeComponent) {
             return KeyState::NotConsumed;
         }
+
         if matches!(self.scroll_state.scroll(key_event), KeyState::Consumed) {
             return KeyState::Consumed;
         };
 
         match key_event.code {
             KeyCode::Char('j') => {
+                if self.paths_total == 0 {
+                    return KeyState::Consumed;
+                }
+
                 if self.count + 1 < self.paths_total {
                     self.count += 1;
                 } else {
                     self.count = 0;
                 }
-                KeyState::Consumed
+                return KeyState::Consumed;
             }
             KeyCode::Char('k') => {
+                if self.paths_total == 0 {
+                    return KeyState::Consumed;
+                }
+
                 if self.count != 0 {
                     self.count = self.count.saturating_sub(1);
                 } else {
-                    self.count = self.paths_total - 1;
+                    self.count = self.paths_total.saturating_sub(1);
                 }
-                KeyState::Consumed
+                return KeyState::Consumed;
             }
             KeyCode::Enter => {
-
-
-                KeyState::Consumed
+                // self.hide();
+                *db = Some(
+                    Database::new(
+                        self.abs_paths
+                            .get(self.count as usize)
+                            .unwrap()
+                            .to_str()
+                            .unwrap(),
+                    )
+                    .unwrap(),
+                );
+                *active = Area::SelectTableComponent;
+                return KeyState::Consumed;
             }
-            _ => { KeyState::NotConsumed}
-        }
+            _ => KeyState::NotConsumed,
+        };
 
         KeyState::NotConsumed
     }
 
-    fn hide(&mut self) {}
+    fn hide(&mut self) {
+        self.visible = false;
+    }
 
     fn show(&mut self) {}
 }
