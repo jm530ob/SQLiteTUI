@@ -10,9 +10,9 @@ use std::{
 
 use crossterm::event::{KeyCode, KeyEvent, KeyModifiers, MediaKeyCode, ModifierKeyCode};
 use ratatui::{
-    layout::Margin,
+    layout::{Constraint, Direction, Layout, Margin},
     style::{Color, Modifier, Style, Styled, Stylize},
-    text::Line,
+    text::{Line, Span},
     widgets::{Block, Borders, Clear, Paragraph, Scrollbar, ScrollbarOrientation, ScrollbarState},
 };
 
@@ -31,7 +31,6 @@ pub struct TreeComponent {
     pub count: u16,
     pub paths_total: u16,
     pub abs_paths: Vec<PathBuf>,
-    pub databases: HashMap<String, Vec<String>>,
     pub scroll_state: ScrollState,
 }
 impl TreeComponent {
@@ -41,7 +40,6 @@ impl TreeComponent {
             count: 0,
             paths_total: 0,
             abs_paths: vec![],
-            databases: HashMap::new(),
             scroll_state: ScrollState::new(),
         }
     }
@@ -53,8 +51,6 @@ impl TreeComponent {
     }
 }
 impl super::Component for TreeComponent {
-    // observer
-
     fn setup(&mut self, args: &models::args::Args) -> Result<(), Box<dyn std::error::Error>> {
         for path in &args.paths {
             let path = Path::new(path);
@@ -87,15 +83,20 @@ impl super::Component for TreeComponent {
                     Line::from(self.to_relative_path(path.to_str().unwrap())).style(
                         Style::new()
                             .bg(Color::Rgb(42, 39, 42))
-                            .fg(Color::Rgb(186, 187, 192))
+                            // .fg(Color::Rgb(186, 187, 192))
                             .bold(),
                     )
                 } else {
                     Line::from(self.to_relative_path(path.to_str().unwrap()))
-                        .style(Style::new().fg(Color::Rgb(186, 187, 192)))
+                    //.style(Style::new().fg(Color::Rgb(186, 187, 192)))
                 }
             })
             .collect::<Vec<Line>>();
+
+        let layout = Layout::default()
+            .direction(Direction::Vertical)
+            .constraints(vec![Constraint::Percentage(90), Constraint::Min(1)])
+            .split(*area);
 
         let paragraph = Paragraph::new(items.clone())
             .scroll((
@@ -107,7 +108,16 @@ impl super::Component for TreeComponent {
                     .borders(Borders::RIGHT)
                     .border_style(Style::new().fg(Color::Rgb(68, 68, 68))),
             );
-        frame.render_widget(paragraph, *area);
+
+        let footer = Paragraph::new(Line::from(vec![
+            Span::raw("Press "),
+            Span::styled("<Ctrl-o>", Style::default().fg(Color::Rgb(255, 255, 0))),
+            Span::raw(" to select"),
+        ]))
+        .centered(); //let footer_style = Style::new().
+
+        frame.render_widget(paragraph, layout[0]);
+        frame.render_widget(footer, layout[1])
     }
 
     fn handle_event(
@@ -154,7 +164,6 @@ impl super::Component for TreeComponent {
                 return KeyState::Consumed;
             }
             KeyCode::Enter => {
-                // self.hide();
                 *db = Some(
                     Database::new(
                         self.abs_paths

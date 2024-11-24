@@ -6,7 +6,7 @@ use crate::utils::scroll_state::ScrollState;
 use crossterm::event::{KeyCode, KeyEvent};
 use ratatui::layout::{Constraint, Direction, Layout, Rect};
 use ratatui::style::{Color, Style, Stylize};
-use ratatui::text::Line;
+use ratatui::text::{Line, Span, Text};
 use ratatui::widgets::{Block, Paragraph};
 use ratatui::{symbols, Frame};
 use std::error::Error;
@@ -43,15 +43,18 @@ impl Component for SelectTableComponent {
     }
 
     fn draw(&self, frame: &mut Frame, _area: &mut Rect, app: &App) {
-        if !self.is_visible && !matches!(app.active, Area::SelectTableComponent) {
+        if !self.is_visible {
+            return;
+        }
+        if !matches!(app.active, Area::SelectTableComponent) {
             return;
         }
 
         let width = 60;
         let height = 30;
         let areal = Rect::new(
-            (frame.size().width - width) / 2,
-            (frame.size().height - height) / 2,
+            (frame.area().width - width) / 2,
+            (frame.area().height - height) / 2,
             width,
             height,
         );
@@ -70,11 +73,11 @@ impl Component for SelectTableComponent {
                     Line::from(table.to_owned()).style(
                         Style::new()
                             .bg(Color::Rgb(75, 74, 84))
-                            .fg(Color::Rgb(186, 187, 192))
+                            //.fg(Color::Rgb(145, 145, 145))
                             .bold(),
                     )
                 } else {
-                    Line::from(table.to_owned()).style(Style::new().fg(Color::Rgb(186, 187, 192)))
+                    Line::from(table.to_owned()) //.style(Style::new().fg(Color::Rgb(145, 145, 145)))
                 }
             })
             .collect::<Vec<Line>>();
@@ -94,18 +97,25 @@ impl Component for SelectTableComponent {
                 .style(Style::new().bg(Color::Rgb(42, 39, 42)))
                 //.border_set(symbols::border::PLAIN)
                 .border_style(Style::new().fg(Color::Rgb(68, 68, 68)))
-                .title("Tables".bold().yellow()),
+                .title(Line::from("Tables").bold().style(Color::Rgb(146, 150, 240))),
         );
         let button_block = Block::bordered()
             .border_set(symbols::border::EMPTY)
             .style(Style::new().fg(Color::Rgb(186, 187, 192)));
 
-        let button_1 = Paragraph::new("(ESC) to close tab")
-            .block(button_block.clone())
-            .left_aligned();
-        let button_2 = Paragraph::new("(Enter) to view table")
-            .block(button_block.clone())
-            .right_aligned();
+        let button_1 = Paragraph::new(Line::from(vec![
+            Span::styled("<Esc>", Style::default().fg(Color::Rgb(255, 255, 0))),
+            Span::raw(" to close tab"),
+        ]))
+        .block(button_block.clone())
+        .left_aligned();
+
+        let button_2 = Paragraph::new(Line::from(vec![
+            Span::styled("<Enter>", Style::default().fg(Color::Rgb(255, 255, 0))),
+            Span::raw(" to view table"),
+        ]))
+        .block(button_block.clone())
+        .right_aligned();
 
         frame.render_widget(paragraph, layout[0]);
         frame.render_widget(button_1, inner_bottom_layout[0]);

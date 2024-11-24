@@ -8,7 +8,7 @@ use crossterm::event::{self, poll, Event, KeyCode, KeyEvent, KeyEventKind, KeyMo
 use ratatui::{
     layout::{Constraint, Direction, Layout},
     style::{Color, Style, Styled},
-    widgets::Block,
+    widgets::{Block, Clear},
     Frame,
 };
 
@@ -76,8 +76,7 @@ impl App {
     }
 
     fn is_event(&self) -> Option<KeyEvent> {
-        if poll(Duration::from_millis(0)).ok()? {
-            // returns Some(KeyEvent) -> KeyEvent
+        if poll(Duration::from_millis(16)).ok()? {
             match event::read().ok()? {
                 Event::Key(key_event) if key_event.kind == KeyEventKind::Press => {
                     return Some(key_event);
@@ -98,26 +97,29 @@ impl App {
         key_event: Option<KeyEvent>,
     ) -> Result<(), Box<dyn std::error::Error>> {
         let bg = Block::new().style(Style::new().bg(Color::Rgb(0, 0, 0)));
-        f.render_widget(bg, f.size());
+        f.render_widget(bg, f.area());
 
         let chunks = Layout::default()
             .direction(Direction::Horizontal)
             .constraints(vec![Constraint::Length(30), Constraint::Min(1)])
-            .split(f.size());
+            .split(f.area());
 
         let mut tree_node_area = chunks[0];
+        let mut table_view = chunks[1];
         self.tree_component.draw(f, &mut tree_node_area, self);
 
         let db = self.db.as_ref();
-        if self.db.as_ref().is_some() {
+        if db.is_some() {
             self.select_table_component.show();
             self.select_table_component
                 .update(self.db.as_ref().unwrap());
-            self.select_table_component.draw(f, &mut f.size(), self);
+            self.select_table_component.draw(f, &mut f.area(), self);
 
             self.view_table_component.show();
-            self.view_table_component.draw(f, &mut f.size(), self);
+            self.view_table_component.draw(f, &mut table_view, self);
         }
+
+        // f.render_widget(Clear, f.area())
 
         if let Some(key_event) = key_event {
             match key_event {
@@ -126,6 +128,7 @@ impl App {
                     modifiers: KeyModifiers::CONTROL,
                     ..
                 } => {
+                    self.view_table_component.hide();
                     self.active = Area::TreeComponent;
                 }
 
@@ -146,11 +149,18 @@ impl App {
             ) {
                 return Ok(());
             }
+            if matches!(
+                self.view_table_component
+                    .handle_event(key_event, &mut self.active, &mut self.db),
+                KeyState::Consumed
+            ) {
+                return Ok(());
+            }
         }
         if key_event.is_some() {
             match key_event.unwrap().code {
                 KeyCode::Esc => {
-                    self.current_view = Some(ViewState::Exiting);
+                    self.exit();
                     return Ok(());
                 }
                 _ => {}
@@ -160,7 +170,6 @@ impl App {
         Ok(())
     }
     fn exit(&mut self) {
-        //
         self.current_view = Some(ViewState::Exiting);
     }
 }
