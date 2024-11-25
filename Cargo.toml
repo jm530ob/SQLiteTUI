@@ -1,7 +1,11 @@
 [package]
 name = "litelens-tui"
 version = "0.1.0"
+authors = ["Jakub Martenek <j.martenek@azet.sk>"]
 edition = "2021"
+description = "Simple TUI app to view existing SQLite database files, built with Rust"
+license = "MIT"
+repository = "https://github.com/jm530ob/litelens-tui"
 
 [dependencies]
 crossterm = "0.27.0"
@@ -13,3 +17,6 @@ tokio = {version = "1.39.2", features = ["full"] }
 tui-popup = "0.4.5"
 clap = { version = "4.5.18", features = ["derive"] }
 regex = "1.11.0"
+
+[profile.release]
+opt-level = 3
