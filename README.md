@@ -6,6 +6,8 @@
 
 Simple tool to view existing SQLite database files, built with Rust, runs as terminal-based user interface (TUI) .
 
+![image](https://github.com/user-attachments/assets/2cc5110b-909b-41ba-af2b-bffed96990b8)
+
 ## Installation
 
 ```bash
