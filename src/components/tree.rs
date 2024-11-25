@@ -1,32 +1,20 @@
-use regex::{Captures, Regex};
+use regex::Regex;
 
-use std::{
-    collections::HashMap,
-    i16,
-    io::Error,
-    path::{Path, PathBuf},
-    usize,
-};
+use std::path::{Path, PathBuf};
 
-use crossterm::event::{KeyCode, KeyEvent, KeyModifiers, MediaKeyCode, ModifierKeyCode};
+use crossterm::event::{KeyCode, KeyEvent};
 use ratatui::{
-    layout::{Constraint, Direction, Layout, Margin},
-    style::{Color, Modifier, Style, Styled, Stylize},
+    layout::{Constraint, Direction, Layout},
+    style::{Color, Style, Stylize},
     text::{Line, Span},
-    widgets::{Block, Borders, Clear, Paragraph, Scrollbar, ScrollbarOrientation, ScrollbarState},
+    widgets::{Block, Borders, Paragraph},
 };
 
-use crate::{
-    app::{App, Area},
-    database::Database,
-    models, tui,
-    utils::scroll_state::ScrollState,
-};
+use crate::{app::Area, database::Database, models, utils::scroll_state::ScrollState};
 
-use super::{Component, KeyState};
+use super::KeyState;
 
 pub struct TreeComponent {
-    // Database: tables
     pub visible: bool,
     pub count: u16,
     pub paths_total: u16,
@@ -67,7 +55,7 @@ impl super::Component for TreeComponent {
         &self,
         frame: &mut ratatui::prelude::Frame,
         area: &mut ratatui::prelude::Rect,
-        app: &crate::app::App,
+        _app: &crate::app::App,
     ) {
         if !self.visible {
             return;
@@ -112,9 +100,9 @@ impl super::Component for TreeComponent {
         let footer = Paragraph::new(Line::from(vec![
             Span::raw("Press "),
             Span::styled("<Ctrl-o>", Style::default().fg(Color::Rgb(255, 255, 0))),
-            Span::raw(" to select"),
+            Span::raw(" to focus"),
         ]))
-        .centered(); //let footer_style = Style::new().
+        .centered();
 
         frame.render_widget(paragraph, layout[0]);
         frame.render_widget(footer, layout[1])
@@ -192,20 +180,11 @@ impl super::Component for TreeComponent {
 
 #[cfg(test)]
 mod tests {
-    use super::super::Component;
-    use std::{collections::HashMap, path::Path};
+    use std::path::Path;
 
     #[test]
     fn path_exists() {
-        // let mut tree = super::TreeComponent {
-        //     databases: HashMap::new(),
-        // };
-
         let path = Path::new("test.db");
-        if path.ends_with(".db") {
-            //assert_eq!(path.canonicalize()?)
-        }
         assert!(path.canonicalize().unwrap().try_exists().unwrap());
-        // println!("{:?}", path.canonicalize().unwrap()); // -- --nocapture
     }
 }

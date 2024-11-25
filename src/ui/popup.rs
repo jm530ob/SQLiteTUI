@@ -1,4 +1,3 @@
-// use derive_setters::Setters;
 use ratatui::prelude::*;
 use ratatui::widgets::{Block, Clear, Paragraph, Widget};
 

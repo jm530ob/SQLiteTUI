@@ -1,6 +1,5 @@
 use crossterm::event::KeyEvent;
-use ratatui::{layout::Rect, widgets::Dataset, Frame};
-use std::error::Error;
+use ratatui::{layout::Rect, Frame};
 
 use crate::{
     app::{App, Area},
@@ -8,7 +7,6 @@ use crate::{
     models,
 };
 
-// pub mod modify_table;
 pub mod select_table;
 pub mod tree;
 pub mod view_table;

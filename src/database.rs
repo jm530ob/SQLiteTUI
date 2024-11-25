@@ -1,6 +1,5 @@
-use rusqlite::{params, types::ValueRef, Connection, Result};
+use rusqlite::{types::ValueRef, Connection, Result};
 
-//#[derive(Clone, Copy)]
 pub struct Database {
     pub conn: Connection,
     pub table: Option<String>,
@@ -87,9 +86,8 @@ impl Database {
 
 #[cfg(test)]
 mod tests {
-    use std::{fs::remove_file, path::Path};
 
-    use rusqlite::{types::Value, ToSql};
+    use rusqlite::types::Value;
 
     // #[test]
     // fn create_db_file_from_path() {

@@ -1,4 +1,4 @@
-use std::{borrow::BorrowMut, cell::RefCell, usize};
+use std::cell::RefCell;
 
 use ratatui::{
     layout::{Constraint, Direction, Layout, Rect},
@@ -35,7 +35,7 @@ impl ViewTableComponent {
             table_colors: TableColors {
                 header: Color::Rgb(145, 94, 53),
                 variant_1: Color::Rgb(48, 26, 27),
-                variant_2: Color::Rgb(101, 59, 46),
+                variant_2: Color::Rgb(71, 38, 39),
             },
             scroll_state: ScrollState::new(),
             table_state: RefCell::new(TableState::default()),
@@ -103,7 +103,6 @@ impl Component for ViewTableComponent {
 
             let mut table_state = self.table_state.borrow_mut();
             table_state.select(Some(self.scroll_state.vertical_scroll));
-            // table_state.scroll_up_by(self.scroll_state.vertical_scroll as u16);
 
             let table = Table::new(rows, &constraints)
                 .highlight_symbol(">>")
@@ -128,7 +127,7 @@ impl Component for ViewTableComponent {
         &mut self,
         key_event: crossterm::event::KeyEvent,
         active: &mut crate::app::Area,
-        db: &mut Option<crate::database::Database>,
+        _db: &mut Option<crate::database::Database>,
     ) -> super::KeyState {
         if !self.is_visible {
             return KeyState::NotConsumed;
@@ -147,9 +146,9 @@ impl Component for ViewTableComponent {
 
     fn setup(
         &mut self,
-        args: &crate::models::args::Args,
+        _args: &crate::models::args::Args,
     ) -> Result<(), Box<dyn std::error::Error>> {
-        todo!()
+        Ok(())
     }
 
     fn hide(&mut self) {

@@ -1,36 +1,21 @@
-use std::{error::Error, io, time::Duration};
+use std::{io, time::Duration};
 
-use crate::{
-    components::view_table::ViewTableComponent,
-    database::{self, Database},
-};
+use crate::{components::view_table::ViewTableComponent, database::Database};
 use crossterm::event::{self, poll, Event, KeyCode, KeyEvent, KeyEventKind, KeyModifiers};
 use ratatui::{
     layout::{Constraint, Direction, Layout},
-    style::{Color, Style, Styled},
-    widgets::{Block, Clear},
+    style::{Color, Style},
+    widgets::Block,
     Frame,
 };
 
 use crate::{
     components::{select_table::SelectTableComponent, tree::TreeComponent, Component, KeyState},
-    models,
-    //  database::{Db, InputState},
-    tui,
-    // ui,
+    models, tui,
 };
-
-pub enum Mode {
-    Normal,
-    Insert,
-}
 
 pub enum ViewState {
     Main,
-    Create,
-    Read,
-    Update,
-    Delete,
     Exiting,
 }
 
@@ -45,7 +30,6 @@ pub struct App {
     pub db: Option<Database>,
     pub active: Area,
     pub tree_component: TreeComponent,
-    //pub modify_table_component: ModifyTableComponent,
     pub select_table_component: SelectTableComponent,
     pub view_table_component: ViewTableComponent,
 }
@@ -118,8 +102,6 @@ impl App {
             self.view_table_component.show();
             self.view_table_component.draw(f, &mut table_view, self);
         }
-
-        // f.render_widget(Clear, f.area())
 
         if let Some(key_event) = key_event {
             match key_event {
