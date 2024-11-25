@@ -35,3 +35,4 @@ $ litelens-tui <COMMAND>
 - [ ] More optimized
 
 ## License
+MIT License
