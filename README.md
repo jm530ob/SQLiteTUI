@@ -4,7 +4,7 @@
 ![Crates.io Total Downloads](https://img.shields.io/crates/d/litelens-tui)
 ![GitHub Repo stars](https://img.shields.io/github/stars/jm530ob/litelens-tui)
 
-Simple tool to view existing SQLite database files, built with Rust, runs as terminal-based user interface (TUI) .
+Simple terminal-based user interface (TUI) app to view existing SQLite database files, built with pure Rust
 
 ![image](https://github.com/user-attachments/assets/2cc5110b-909b-41ba-af2b-bffed96990b8)
 
