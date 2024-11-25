@@ -37,4 +37,5 @@ $ litelens-tui <COMMAND>
 - [ ] More optimized
 
 ## License
-MIT License
+
+<a href="https://github.com/jm530ob/litelens-tui/blob/main/LICENSE">MIT</a>
