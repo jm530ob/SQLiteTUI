@@ -2,7 +2,6 @@ use crate::app::{App, Area};
 use crate::components::{Component, KeyState};
 use crate::database::Database;
 use crate::models::args::Args;
-use crate::utils::scroll_state::ScrollState;
 use crossterm::event::{KeyCode, KeyEvent};
 use ratatui::layout::{Constraint, Direction, Layout, Rect};
 use ratatui::style::{Color, Style, Stylize};
@@ -13,8 +12,6 @@ use std::error::Error;
 
 pub struct SelectTableComponent {
     is_visible: bool,
-    is_selected: bool,
-    scroll_state: ScrollState,
     count: u16,
     tables_total: u16,
 }
@@ -23,8 +20,6 @@ impl SelectTableComponent {
     pub fn new() -> Self {
         return Self {
             is_visible: false,
-            is_selected: false,
-            scroll_state: ScrollState::new(),
             count: 0,
             tables_total: 0,
         };
@@ -95,7 +90,6 @@ impl Component for SelectTableComponent {
         let paragraph = Paragraph::new(lines).block(
             Block::bordered()
                 .style(Style::new().bg(Color::Rgb(42, 39, 42)))
-                //.border_set(symbols::border::PLAIN)
                 .border_style(Style::new().fg(Color::Rgb(68, 68, 68)))
                 .title(Line::from("Tables").bold().style(Color::Rgb(146, 150, 240))),
         );
@@ -175,7 +169,6 @@ impl Component for SelectTableComponent {
                 let table_list = db_ref.list_tables(conn).unwrap();
                 let table = table_list.get(self.count as usize);
                 db_ref.table = Some(table.unwrap().to_owned());
-                //  let query = db_ref.get_query(conn, table.unwrap()).unwrap();
                 return KeyState::Consumed;
             }
 
