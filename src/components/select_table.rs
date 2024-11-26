@@ -65,14 +65,10 @@ impl Component for SelectTableComponent {
             .map(|table| {
                 count += 1;
                 if count == self.count as i16 {
-                    Line::from(table.to_owned()).style(
-                        Style::new()
-                            .bg(Color::Rgb(75, 74, 84))
-                            //.fg(Color::Rgb(145, 145, 145))
-                            .bold(),
-                    )
+                    Line::from(table.to_owned())
+                        .style(Style::new().bg(Color::Rgb(75, 74, 84)).bold())
                 } else {
-                    Line::from(table.to_owned()) //.style(Style::new().fg(Color::Rgb(145, 145, 145)))
+                    Line::from(table.to_owned())
                 }
             })
             .collect::<Vec<Line>>();
