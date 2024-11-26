@@ -4,7 +4,7 @@
 ![Crates.io Total Downloads](https://img.shields.io/crates/d/litelens-tui)
 ![GitHub Repo stars](https://img.shields.io/github/stars/jm530ob/litelens-tui)
 
-Simple terminal-based user interface (TUI) app to view existing SQLite database files, built with pure Rust
+Simple terminal-based user interface `TUI` app to view existing SQLite database files, built with pure Rust
 
 ![image](https://github.com/user-attachments/assets/2cc5110b-909b-41ba-af2b-bffed96990b8)
 
@@ -25,16 +25,25 @@ $ litelens-tui <COMMAND>
 ## Args
 | Arg  | Description |
 | ------------- | ------------- |
-| `-p` | relative / absolute path |
+| `-p` short for `-path` | relative / absolute path |
 
-*After being set, the path will be remembered
+~~After being set, the path will be remembered~~
 
-### Feature Checklist
+## Navigation
+| Key  | Movement | Area
+| --- | -- | -------- |
+| `k` | Up | TreeNode |
+| `j` | Down | TreeNode |
+| `ArrowUp` | Up | TableView |
+| `ArrowDown` | Down | TableView |
+
+### Features
 - [x] Vim like navigation
 - [x] TUI Interface
 - [x] View data
 - [ ] Modify data
-- [ ] More optimized
+- [ ] Better optimized
+- [ ] Error handler and display
 
 ## License
 
