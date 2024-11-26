@@ -25,16 +25,25 @@ $ litelens-tui <COMMAND>
 ## Args
 | Arg  | Description |
 | ------------- | ------------- |
-| `-p` | relative / absolute path |
+| `-p` short for `-path` | relative / absolute path |
 
-*After being set, the path will be remembered
+~~After being set, the path will be remembered~~
 
-### Feature Checklist
+## Navigation
+| Key  | Movement | Area
+| --- | -- | -------- |
+| `k` | Up | TreeNode |
+| `j` | Down | TreeNode |
+| `ArrowUp` | Up | TableView |
+| `ArrowDown` | Down | TableView |
+
+### Features
 - [x] Vim like navigation
 - [x] TUI Interface
 - [x] View data
 - [ ] Modify data
-- [ ] More optimized
+- [ ] Better optimized
+- [ ] Error handler and display
 
 ## License
 
