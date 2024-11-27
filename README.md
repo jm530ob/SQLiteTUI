@@ -19,7 +19,7 @@ To get started, simply provide at least one argument specifying the ``.db`` file
 
 Run in your terminal
 ```
-$ litelens-tui <COMMAND>
+$ litelens-tui <ARGS>
 ```
 
 ## Args
