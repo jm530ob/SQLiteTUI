@@ -44,6 +44,7 @@ $ litelens-tui <ARGS>
 - [ ] Modify data
 - [ ] Better optimized
 - [ ] Error handler and display
+- [ ] dump the contents of a database into stdout
 
 ## License
 
